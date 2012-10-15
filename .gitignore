@@ -1,0 +1,7 @@
+# Ignore all XML & output text #
+################################
+*.txt
+*.xml
+*.xls
+*.bak
+*.ods
