@@ -41,7 +41,8 @@ also strips out that ridiculous default namespace
 I guess I'll want to redo this to build a full list of all possible elements across all files
 Then cast that into a "set" so that dups are gone & use that as my index & header row.
 At the same time, I'll build a dictionary (of dictionaries?) that has following format
-{filename1:{element2:count, element2:count, element3:count}, filename2:{element1:count, element2:count}, etc:{etc...}}
+{filename1:{element2:count, element2:count, element3:count}, 
+filename2:{element1:count, element2:count}, etc:{etc...}}
 Then I'll use the "set" to print my values matrix...
 """
 def print_path(root, path=None):
@@ -63,7 +64,8 @@ def print_path(root, path=None):
         # Get rid of "id" calls from here...
         if child.tag.replace('{urn:isbn:1-931666-22-9}','') == 'c' and 'level' in child.attrib:
             if 'otherlevel' in child.attrib:
-                new_path.append(child.tag + ":" + child.attrib["id"] + ":" + child.attrib["level"] + ":" + child.attrib["otherlevel"])
+                new_path.append(child.tag + ":" + child.attrib["id"] + ":" + child.attrib["level"] + 
+                    ":" + child.attrib["otherlevel"])
             else: 
                 new_path.append(child.tag + ":" + child.attrib["id"] + ":" + child.attrib["level"])
         else:
@@ -81,7 +83,8 @@ def print_path(root, path=None):
                 nocid += 1
             if 'level' in child.attrib:
             #if child.attrib["level"] == 'otherlevel':
-                li.append('/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + "/" + tag + ":" + child.attrib["level"] )
+                li.append('/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + "/" + 
+                    tag + ":" + child.attrib["level"] )
             #print child.tag, child.attrib
             else:
                 li.append('/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + "/" + tag )
@@ -89,10 +92,13 @@ def print_path(root, path=None):
         if tag == 'unittitle' and child.text:
             # This bit could use a re-write. I'm losing "tail" text. 
             # I should actually build a subroutine that strips tags & gets all text. 
-            # See: http://www.velocityreviews.com/forums/t342725-elementtree-how-to-get-the-whole-content-of-a-tag.html
-
-#            li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}',''))  + "|" + str(child.text.decode('utf-8')))
-#            li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}',''))  + "|" + "".join( [ child.text ] + [ e.text for e in child.iter() ] ))
+            # http://www.velocityreviews.com/forums/t342725-elementtree-how-to-get-the-whole-content-of-a-tag.html
+            '''
+            li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}',''))  + 
+                "|" + str(child.text.decode('utf-8')))
+            li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}',''))  + 
+                "|" + "".join( [ child.text ] + [ e.text for e in child.iter() ] ))
+            '''
             ut = f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + "|"
             t = ''
             for e in child.iter():
@@ -101,21 +107,28 @@ def print_path(root, path=None):
             if t == '':
                 print idtext
             li2.append(ut + t.lstrip())
-            #li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}',''))  + "|" )+ " ".join([ e.text.strip() for e in child.iter() ] ).lstrip())
-            #li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}',''))  + "|" + child.text)
-
+            '''
+            li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + 
+                "|" )+ " ".join([ e.text.strip() for e in child.iter() ] ).lstrip())
+            li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + 
+                "|" + child.text)
+            '''
 
         elif tag == 'controlaccess':
             #actually, this is fully the wrong way to go about this...
             # What I want to do is get all the raw text, (see other note about more modular code...)
             for subchild in child:
-                if subchild.tag.replace('{urn:isbn:1-931666-22-9}','') in ['persname', 'subject', 'corpname', 'genreform', 'geogname', 'famname']:
-                    li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + "/" + tag + "|" + subchild.tag.replace('{urn:isbn:1-931666-22-9}','') + "|" + subchild.text)
+                if subchild.tag.replace('{urn:isbn:1-931666-22-9}','') in [
+                        'persname', 'subject', 'corpname', 'genreform', 'geogname', 'famname'
+                    ]:
+                    li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + 
+                        "/" + tag + "|" + subchild.tag.replace('{urn:isbn:1-931666-22-9}','') + "|" + subchild.text)
                     #tmp = re.findall('[A-Za-z]+',subchild.text)
                     item = {
                         u'id': subchild.text,
                         #b = re.compile('[a-z]+')
-                        u'label': subchild.text.rstrip('.'),
+                        #u'label': subchild.text.rstrip('.'),
+                        u'label': subchild.text.split('|')[0].rstrip('.'),
                         u'type': 'Object',
                      }
                     #more of eric's stuff goes here...
@@ -124,23 +137,48 @@ def print_path(root, path=None):
                         #if code == acode: print >> sys.stderr, (item, aparams)
                         #if code == acode and all(( item.get(p) for p in aparams )):
                         #modifying this to drop the item.get(p) thing (for now)
-                        #But I like how that's actually working, keeping param names synched in & outside of function...
+                        #But I like how that's actually working, keeping param names
+                        # synched in & outside of function...
                         '''TODO: 
                             -Parse out dates in persname...
                             -Strip subdivisions (And deal with some of them?)
-                        
+                            Maybe not necessary to parse out dates from names. Lookup seems to work without it. 
+                            Then can do this to track:
+                        bash-3.2$ awk ' BEGIN { FS = "|" ; OFS = "|" } { if ($NF == "None") { print "missing" } 
+                            else { print "found" } } ' uri_matches.txt | sort | uniq -c
+                        123 found
+                        210 missing
+                        Now that I'm stripping the right hand stuff... Let's see how much my hit-rate goes up.
+                        Pretty significantly:
+                        bash-3.2$ awk ' BEGIN { FS = "|" ; OFS = "|" } { if ($NF == "None") { print "missing" } 
+                            else { print "found" } } ' uri_matches.txt | sort | uniq -c
+                        162 found
+                        171 missing
                         '''
                         if code == acode and all(( item.get(p) for p in aparams )):
                             #Meets the criteria for this augmentation
                             val = afunc(item)
+                            if afunc(item) == "":
+                                val = "None"
                             print subchild.text.encode('utf-8')  + "|"  + str(val)
-                            uri_matches.write(subchild.text + "|" + str(val) + "\n")
+                            #time to pimp out this uri_match file...
+                            #uri_matches.write(subchild.text + "|" + str(val) + "\n")
+                            uri_matches.write(
+                                                f + "|" + 
+                                                subchild.tag.replace('{urn:isbn:1-931666-22-9}','') + "|" + 
+                                                subchild.attrib["source"] + "|" + 
+                                                subchild.text.replace("|", "$$") + "|" + key + "|" +
+                                                str(val) + "\n")
+
                             #print "boob"
                             #if val is not None: item[key] = val
 
 
             #accesstype = child    
-            #print f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + "/" + tag + "|" + child.text
+            '''
+            print f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + \
+                "/" + tag + "|" + child.text
+            '''
         #new_path.append(child.tag)
         #print new_path
         if text:
