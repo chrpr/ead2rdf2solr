@@ -24,6 +24,12 @@ uri_matches = codecs.open('uri_matches.txt', 'w', encoding='utf-8')
 
 #matrix2 = open('matrix2.txt', 'w')
 #totals = open('totals.txt', 'w')
+
+#if len(sys.argv) > 1:
+lookup = sys.argv
+#else: 
+#    lookup = ""
+
 path = ''
 li = []
 li2 = []
@@ -155,7 +161,7 @@ def print_path(root, path=None):
                         162 found
                         171 missing
                         '''
-                        if code == acode and all(( item.get(p) for p in aparams )):
+                        if code == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)):
                             #Meets the criteria for this augmentation
                             val = afunc(item)
                             if afunc(item) == "":
