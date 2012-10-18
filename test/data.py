@@ -21,6 +21,18 @@ levels = codecs.open('c-levels.txt', 'w', encoding='utf-8')
 strings = codecs.open('strings.txt', 'w', encoding='utf-8')
 title_markup = codecs.open('markup.txt', 'w', encoding='utf-8')
 uri_matches = codecs.open('uri_matches.txt', 'w', encoding='utf-8')
+#old_matches = open('old_matches.txt')
+old_matches = codecs.open('old_matches.txt', 'r', 'utf-8')
+old_uris = {}
+
+for line in old_matches:
+    #print line
+    l = line.split("|")
+    # or is it better to do this as d[str(l[0:5])] = l[5]?...
+    # d[str(l[0:4])] = {l[4]: l[5]}
+    # Better still, use "|".join(l[0:5])
+    # d[str(l[0:5])] = l[5]
+    old_uris["|".join(l[0:5])] = l[5] 
 
 #matrix2 = open('matrix2.txt', 'w')
 #totals = open('totals.txt', 'w')
@@ -161,7 +173,8 @@ def print_path(root, path=None):
                         162 found
                         171 missing
                         '''
-                        if code == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)):
+                        k = "|".join([f, subchild.tag.replace('{urn:isbn:1-931666-22-9}',''), subchild.attrib["source"], subchild.text.replace("|", "$$"), key  ])
+                        if code == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)) and k not in old_uris:
                             #Meets the criteria for this augmentation
                             val = afunc(item)
                             if afunc(item) == "":
@@ -175,7 +188,7 @@ def print_path(root, path=None):
                                                 subchild.attrib["source"] + "|" + 
                                                 subchild.text.replace("|", "$$") + "|" + key + "|" +
                                                 str(val) + "\n")
-
+                            
                             #print "boob"
                             #if val is not None: item[key] = val
 
