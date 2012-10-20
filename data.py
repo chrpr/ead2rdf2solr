@@ -142,55 +142,104 @@ def print_path(root, path=None):
                     li2.append(f + "|" + '/{0}'.format('/'.join(new_path).replace('{urn:isbn:1-931666-22-9}','')) + 
                         "/" + tag + "|" + subchild.tag.replace('{urn:isbn:1-931666-22-9}','') + "|" + subchild.text)
                     #tmp = re.findall('[A-Za-z]+',subchild.text)
-                    item = {
+                    items = []
+                    items.append({
                         u'id': subchild.text,
                         #b = re.compile('[a-z]+')
                         #u'label': subchild.text.rstrip('.'),
                         u'label': subchild.text.split('|')[0].rstrip('.'),
                         u'type': 'Object',
-                     }
+                        u'level': 'Heading',
+                        u'code' : subchild.tag.replace('{urn:isbn:1-931666-22-9}','')
+
+                     })
+                    if u"|" in subchild.text:
+                        fl = subchild.text.split('|')[1:]
+                        #print subchild.text
+                        #item[u'facets'] = {}
+                        for delim in fl:
+                            items.append({
+                                u'id': subchild.text + delim[0:1],
+                                u'label': delim[2:],
+                                u'type': 'Object',
+                                u'level': 'sub',
+                                u'code': 'sub' + delim[0:1]
+                            })
+                            #print delim
+                            #print delim[0:1]
+                            #item[u'facets'][delim[0:1] + 'sub'] = delim[2:]
+                            #print item['facets']
+                        #print item[u'facets'].keys()
+                        #subs.extend(item[u'facets'].keys())
+                        #usubs = Set(subs)
+
+                    #print item[u'label'].encode('utf-8')
+                    #if u'facets' in item:
+                    #    print item[u'facets']
                     #more of eric's stuff goes here...
-                    code = subchild.tag.replace('{urn:isbn:1-931666-22-9}','')
-                    for (acode, aparams, afunc, key) in EAD_AUGMENTATIONS:
-                        #if code == acode: print >> sys.stderr, (item, aparams)
-                        #if code == acode and all(( item.get(p) for p in aparams )):
-                        #modifying this to drop the item.get(p) thing (for now)
-                        #But I like how that's actually working, keeping param names
-                        # synched in & outside of function...
-                        '''TODO: 
-                            -Parse out dates in persname...
-                            -Strip subdivisions (And deal with some of them?)
-                            Maybe not necessary to parse out dates from names. Lookup seems to work without it. 
-                            Then can do this to track:
-                        bash-3.2$ awk ' BEGIN { FS = "|" ; OFS = "|" } { if ($NF == "None") { print "missing" } 
-                            else { print "found" } } ' uri_matches.txt | sort | uniq -c
-                        123 found
-                        210 missing
-                        Now that I'm stripping the right hand stuff... Let's see how much my hit-rate goes up.
-                        Pretty significantly:
-                        bash-3.2$ awk ' BEGIN { FS = "|" ; OFS = "|" } { if ($NF == "None") { print "missing" } 
-                            else { print "found" } } ' uri_matches.txt | sort | uniq -c
-                        162 found
-                        171 missing
-                        '''
-                        k = "|".join([f, subchild.tag.replace('{urn:isbn:1-931666-22-9}',''), subchild.attrib["source"], subchild.text.replace("|", "$$"), key  ])
-                        if code == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)) and k not in old_uris:
-                            #Meets the criteria for this augmentation
-                            val = afunc(item)
-                            if afunc(item) == "":
-                                val = "None"
-                            print subchild.text.encode('utf-8')  + "|"  + str(val)
-                            #time to pimp out this uri_match file...
-                            #uri_matches.write(subchild.text + "|" + str(val) + "\n")
-                            uri_matches.write(
-                                                f + "|" + 
-                                                subchild.tag.replace('{urn:isbn:1-931666-22-9}','') + "|" + 
-                                                subchild.attrib["source"] + "|" + 
+                    #print items
+                    #interesting: so, passing an item that had a dictionary in it broke the augement.py code.
+                    # stripping it into main "item" fixed the problem. 
+                    # So, what I really need is an "items" list, and an extra processing loop...
+                    #if u'facets' in items[0]:
+                    #    print facets
+                    #    facets = items[0].pop(u'facets')
+                    #    for key, val in facets.iteritems():
+                        # TODO: 
+                        #    - THis is the next step. Add a bunch of additional "items"
+                        #    - Make "code" an attribute of the item itself
+                        #    - modify the lookup loop below
+                    #        items.append({
+                    #            u'id': subchild.text + key,
+                     #           u'label': val,
+                     #           u'type': 'Object',
+                     #           u'level': 'sub',
+                     #           u'code': 'key'
+
+                     #       })
+                    for item in items:
+                        print item
+                        for (acode, aparams, afunc, key) in EAD_AUGMENTATIONS:
+                            #if code == acode: print >> sys.stderr, (item, aparams)
+                            #if code == acode and all(( item.get(p) for p in aparams )):
+                            #modifying this to drop the item.get(p) thing (for now)
+                            #But I like how that's actually working, keeping param names
+                            # synched in & outside of function...
+                            '''TODO: 
+                                -Parse out dates in persname...
+                                -strip subdivisions (And deal with some of them?)
+                                Maybe not necessary to parse out dates from names. Lookup seems to work without it. 
+                                Then can do this to track:
+                            bash-3.2$ awk ' BEGIN { FS = "|" ; OFS = "|" } { if ($NF == "None") { print "missing" } 
+                                else { print "found" } } ' uri_matches.txt | sort | uniq -c
+                            123 found
+                            210 missing
+                            Now that I'm stripping the right hand stuff... Let's see how much my hit-rate goes up.
+                            Pretty significantly:
+                            bash-3.2$ awk ' BEGIN { FS = "|" ; OFS = "|" } { if ($NF == "None") { print "missing" } 
+                                else { print "found" } } ' uri_matches.txt | sort | uniq -c
+                            162 found
+                            171 missing
+                            '''
+                            # This shit here is *crazy* wonky... I'll need to trick this out so it's clear whether I'm 
+                            # cranking on "subfields" or main headings...
+                            k = "|".join([f, subchild.tag.replace('{urn:isbn:1-931666-22-9}',''), subchild.attrib["source"], item['level'], subchild.text.replace("|", "$$"), key  ])
+                            if item['code'] == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)) and k not in old_uris:
+                                #Meets the criteria for this augmentation
+                                val = afunc(item)
+                                if afunc(item) == "":
+                                    val = "None"
+                                print subchild.text.encode('utf-8')  + "|"  + str(val)
+                                #time to pimp out this uri_match file...
+                                #uri_matches.write(subchild.text + "|" + str(val) + "\n")
+                                uri_matches.write(
+                                                f + "|" + item['code'] + "|" + 
+                                                subchild.attrib["source"] + "|" + item['level'] + "|" +
                                                 subchild.text.replace("|", "$$") + "|" + key + "|" +
                                                 str(val) + "\n")
                             
-                            #print "boob"
-                            #if val is not None: item[key] = val
+                                #print "boob"
+                                #if val is not None: item[key] = val
 
 
             #accesstype = child    
