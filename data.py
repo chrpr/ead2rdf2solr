@@ -32,7 +32,8 @@ for line in old_matches:
     # d[str(l[0:4])] = {l[4]: l[5]}
     # Better still, use "|".join(l[0:5])
     # d[str(l[0:5])] = l[5]
-    old_uris["|".join(l[0:5])] = l[5] 
+    #print ["|".join(l[0:6])]
+    old_uris["|".join(l[0:6])] = l[6] 
 
 #matrix2 = open('matrix2.txt', 'w')
 #totals = open('totals.txt', 'w')
@@ -223,7 +224,9 @@ def print_path(root, path=None):
                             '''
                             # This shit here is *crazy* wonky... I'll need to trick this out so it's clear whether I'm 
                             # cranking on "subfields" or main headings...
-                            k = "|".join([f, subchild.tag.replace('{urn:isbn:1-931666-22-9}',''), subchild.attrib["source"], item['level'], subchild.text.replace("|", "$$"), key  ])
+                            #k = "|".join([f, subchild.tag.replace('{urn:isbn:1-931666-22-9}',''), subchild.attrib["source"], item['level'], subchild.text.replace("|", "$$"), key  ])
+                            k = "|".join([f, item['code'], subchild.attrib["source"], item['level'], subchild.text.replace("|", "$$"), key  ])
+                            
                             if item['code'] == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)) and k not in old_uris:
                                 #Meets the criteria for this augmentation
                                 val = afunc(item)
