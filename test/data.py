@@ -226,6 +226,11 @@ def print_path(root, path=None):
                             # cranking on "subfields" or main headings...
                             #k = "|".join([f, subchild.tag.replace('{urn:isbn:1-931666-22-9}',''), subchild.attrib["source"], item['level'], subchild.text.replace("|", "$$"), key  ])
                             k = "|".join([f, item['code'], subchild.attrib["source"], item['level'], subchild.text.replace("|", "$$"), key  ])
+
+                            #Huh: This still doesn't seem to be working. See gap in midst of :
+                            # file:///media/Storage/EAD%20for%20Corey/EAD%20for%20Corey/WAG.038-ead.xml
+                            ## TODO: Fix this shit, find gaps, re-run code to fill gaps at some point? Also, will there be gaps on id.loc or in viaf?
+                            ## TODO: Tighten up Viaf Matching & rerun that as well
                             
                             if item['code'] == acode and all(( item.get(p) for p in aparams )) and ((key[:4] in lookup) or (len(lookup) == 1)) and k not in old_uris:
                                 #Meets the criteria for this augmentation
