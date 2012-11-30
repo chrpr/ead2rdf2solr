@@ -38,30 +38,6 @@ class Ead(object):
 		#for child in ead.getroot():
 		#	print child.tag
 		#self.identifier = gettext(ead.find(n + 'eadheader/' + n + 'eadid'))
-
-		#First, get identifier
-		_id = ead.find('{0}eadheader/{0}eadid'.format(namespace))
-		#print gettext(_id)
-		self.metadata['Identifier'] = gettext(_id) if gettext(_id) != " " else fn.replace("-ead.xml", "").replace(".", "_").lower()
-		#print self.metadata['Identifier']
-
-		#Now, start iteration...
-		#So, I feel like there's gotta be a better way to do this. Switch? Lamdas?
-		for element in ead.find('{0}archdesc'.format(namespace)):
-			if element.tag.replace(namespace, '') == "accessrestrict":
-				self.metadata['Restrictions'] = []
-				for i in element.findall('{0}p'.format(namespace)):
-					self.metadata['Restrictions'].append(gettext(i))
-			if element.tag.replace(namespace, '') == "arrangement":
-				self.metadata['Arrangement'] = []
-				for i in element.findall('{0}list/{0}item'.format(namespace)):
-					self.metadata['Arrangement'].append(gettext(i))
-				for i in element.findall('{0}p'.format(namespace)):
-					self.metadata['Arrangement'].append(gettext(i))
-
-
-		''' Working block from here to end of ' ' '
-		Replacing with a for tag in that's going to go chunk by chunk
 		restrict = ead.find('{0}archdesc/{0}accessrestrict'.format(namespace))
 		if restrict:
 			count = 0
@@ -79,7 +55,7 @@ class Ead(object):
 		self.metadata['Identifier'] = gettext(_id) if gettext(_id) != " " else fn.replace("-ead.xml", "").replace(".", "_").lower()
 
 		self.metadata['Title'] = gettext(ead.find('{0}archdesc/{0}did/{0}unittitle'.format(namespace)))
-		'''
+
 
 '''
 # All of the below is old code. Probably kill this & start over, but will leave it here as reference for now...
@@ -114,27 +90,4 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
     #print '{0} -> {1}'.format(file, tree.getroot())
     if generate_rdf(tree.getroot()) == " ": 
     	print '{0}|{1}'.format(f, generate_rdf(tree.getroot()))
-
-tags = {'accessrestrict' : getTextFromMany(parent, "p"),
-		'1' : sqr,
-		#4 : sqr,
-		#9 : sqr,
-		#2 : even,
-		#3 : prime,
-		#5 : prime,
-		#7 : prime,
-}
-
-def getTextFromMany(element, child):
-    print "You typed zero.\n"
-
-def sqr():
-    print "n is a perfect square\n"
-
-def even():
-    print "n is an even number\n"
-
-def prime():
-    print "n is a prime number\n"
-
-    '''   
+'''   
