@@ -1,15 +1,23 @@
-import xml.etree.cElementTree as ET
+#import xml.etree.cElementTree as ET
+from lxml import etree
 import rdflib
+import re
 
 # This moves to "utils"
-def gettext(elem):
+def gettext(elem, ignore=[], newline=[]):
 	text = elem.text or ""
+	text = text.rstrip()
+	#print elem.tag + "|" + str(newline)
 	#print text
+	#TODO: This is still a little whacky. Got's to work out how to handle this better....
 	for subelem in elem:
-		text = text.strip() + " " + gettext(subelem)
+		if subelem.tag not in ignore: text = text + " " + gettext(subelem, ignore, newline)
+		if subelem.tag in newline: 
+			#print text
+			text = "\n" + text.lstrip() + "\n"
 		if subelem.tail:
-			text = text + subelem.tail.strip() + " "
-	return text.strip() + " "
+			text = text + subelem.tail.strip()
+	return text
 
 class Ead(object):
 
@@ -24,6 +32,7 @@ class Ead(object):
 		- Import to 4store via SPARQL
 		- Writing RDF to file
 		- Writing SOLR Index entries
+		- Stretch goal: Writing XML for Primo imput?
 	"""
 
 	def __init__(self, ead, fn):
@@ -31,6 +40,13 @@ class Ead(object):
 		''' TODO: Get these via xpaths, or by looping. Maybe a combination of each?'''
 		print fn
 		namespace = "{urn:isbn:1-931666-22-9}"
+		'''
+		Refactoring this to use lxml...
+		Play with:
+		>>> r = doc.xpath('/t:foo/b:bar',
+...               namespaces={'t': 'http://codespeak.net/ns/test1',
+...                           'b': 'http://codespeak.net/ns/test2'})
+		'''
 		self.metadata = {}
 
 		#print ead.getroot()
@@ -40,28 +56,95 @@ class Ead(object):
 		#self.identifier = gettext(ead.find(n + 'eadheader/' + n + 'eadid'))
 
 		#First, get identifier
-		_id = ead.find('{0}eadheader/{0}eadid'.format(namespace))
+		#_id = ead.find('{0}eadheader/{0}eadid'.format(namespace))
+		# okay, so after installing lxml and switching over, it actually makes very little difference.
+		# Will leave lxml as my tool of choice, but keep using the findall & find methods for compatability with ElementTree...
+		_id = ead.xpath('n:eadheader/n:eadid', namespaces={'n': 'urn:isbn:1-931666-22-9'})
+		#print len(_id)
 		#print gettext(_id)
-		self.metadata['Identifier'] = gettext(_id) if gettext(_id) != " " else fn.replace("-ead.xml", "").replace(".", "_").lower()
+		self.metadata['Identifier'] = gettext(_id[0]) if gettext(_id[0]) != " " else fn.replace("-ead.xml", "").replace(".", "_").lower()
 		#print self.metadata['Identifier']
 
 		#Now, start iteration...
-		#So, I feel like there's gotta be a better way to do this. Switch? Lamdas?
-		for element in ead.find('{0}archdesc'.format(namespace)):
-			if element.tag.replace(namespace, '') == "accessrestrict":
+		#So, I feel like there's gotta be a better way to do this. Dict of named functions? Lamdas??
+		archdesc = ead.find('{0}archdesc'.format(namespace))
+		self.metadata['Type'] = archdesc.get("level")
+
+		for element in archdesc:
+			tag = element.tag.replace(namespace, '')
+			if tag == "accessrestrict":
 				self.metadata['Restrictions'] = []
 				for i in element.findall('{0}p'.format(namespace)):
 					self.metadata['Restrictions'].append(gettext(i))
-			if element.tag.replace(namespace, '') == "arrangement":
+			if tag == "arrangement":
+				#self.metadata['Arrangement'] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"p"])]
+				self.metadata['Arrangement'] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item"])]
+
+				'''
+				Have modded the "gettext" method so it will optionally take a list of elements to strip. 
+				Not sure if that approach is preferable here, or if collecting <p> & <list><item> tags 
+				in separate instances of "Arrangement" is better approach. Latter is *closer* to keeping formating....
+				I could also mod gettext so that <p> tags manifest as having a linebreak after them....
+				Hah, this is kinda disgusting, but it actually now takes newline & ignore lists...
+				Seems to be better than the approach below:
 				self.metadata['Arrangement'] = []
 				for i in element.findall('{0}list/{0}item'.format(namespace)):
 					self.metadata['Arrangement'].append(gettext(i))
 				for i in element.findall('{0}p'.format(namespace)):
 					self.metadata['Arrangement'].append(gettext(i))
+				'''
+			if tag == "bibliography":
+				self.metadata['Bibliographic Reference'] = []
+				for i in element.findall('{0}bibref'.format(namespace)):
+					self.metadata['Bibliographic Reference'].append(gettext(i, ignore=[namespace+"head"]))
+			if tag == "bioghist":
+				self.metadata['Biographical/Historical Note'] = [gettext(element)]
+			if tag == "controlaccess":
+				controldict = { 
+			   			'corpname': { 'ingest': 'Local Corporate Name', 'local': 'Local Corporate Name',
+			   							'nad': 'Local Corporate Name', 'naf': 'LC Corporate Name' },
+						'genreform': { 'aat': 'Art & Arch Thesaurus Genre', 'lcsh': 'LC Genre',
+										'local': 'Local Genre Term' },
+						'geogname': { 'lcsh': 'LC Geographic Name', 'local': 'Local Geographic Name' },
+						'persname': { 'ingest': 'Local Personal Name', 'local': 'Local Personal Name', 
+										'nad': 'Local Personal Name', 'naf': 'LC Personal Name' },
+						'subject': { 'aat': 'Art & Arch Thesaurus Subject', 'lcsh': 'LC Subject', 
+										'local': 'Local Subject' },
+						'famname': { 'local': 'Family Name', 'ingest': 'Family Name' },
+						'occupation': { 'lcsh': 'Occupation' },
+						'title': { 'lcsh': 'Title' }
+				}
+				for ca in element:
+					t = ca.tag.replace(namespace, '')
+					s = ca.get('source')
+					text = re.sub(r' \|[A-Za-z] ', ' -- ', gettext(ca))
+					if s == 'lcsh':
+						self.metadata["FAST Heading"] = text.split(' -- ')
+					self.metadata[controldict[t][s]] = text
+			if tag == 'dao':
+				href = element.get('{http://www.w3.org/1999/xlink}href')
+				self.metadata["Related Web Archive"] = gettext(element) + ": " + href
+			if tag == "relatedmaterial":
+				if element.xpath('//n:extref', namespaces={'n': 'urn:isbn:1-931666-22-9'}): 
+					extref = element.xpath('//n:extref', namespaces={'n': 'urn:isbn:1-931666-22-9'})[0]
+					href = extref.get('{http://www.w3.org/1999/xlink}href') if '{http://www.w3.org/1999/xlink}href' in extref else ""
+				else:
+					href = ""
+				self.metadata["Related Mateirals"] = gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"extref"]) + " " + href
+				#root.xpath("//article[@type='news']")
+			if tag == 'scopecontent':
+				self.metadata["Scope Note"] = gettext(element, ignore=[namespace+"head"])
+			if tag == 'separatedmaterial':
+				self.metadata["Separated Materials Note"] = gettext(element, ignore=[namespace+"head"])
+			if tag == 'userestrict':
+				if 'Restrictions' not in self.metadata: self.metadata['Restrictions'] = []
+				self.metadata['Restrictions'].append(gettext(element, ignore=[namespace+"head"]))
+
+ 
 
 
 		''' Working block from here to end of ' ' '
-		Replacing with a for tag in that's going to go chunk by chunk
+		Replacing with a "for element in" that's going to go chunk by chunk
 		restrict = ead.find('{0}archdesc/{0}accessrestrict'.format(namespace))
 		if restrict:
 			count = 0
