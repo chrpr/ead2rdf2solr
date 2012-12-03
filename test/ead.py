@@ -2,6 +2,7 @@
 from lxml import etree
 import rdflib
 import re
+from component import Component
 
 # This moves to "utils"
 def gettext(elem, ignore=[], newline=[]):
@@ -114,6 +115,8 @@ class Ead(object):
 		self.metadata = {}
 		self.headinglist = []
 		self.headrootlist = []
+		# currently self.components is only *immediate* children, not ancestors. Components will have components will have components, though....
+		self.components = []
 		self.metadata["File Name"] = fn
 		#print ead.getroot()
 		#print ead.getroot().find('{urn:isbn:1-931666-22-9}eadheader/{urn:isbn:1-931666-22-9}eadid')
@@ -203,6 +206,13 @@ class Ead(object):
 			if tag == 'userestrict':
 				if fieldrenamings[tag] not in self.metadata: self.metadata[fieldrenamings[tag]] = []
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
+
+			if tag == 'dsc':
+				for c in element:
+					component = Component(c, self)
+					# TODO Add this to field renamings!
+					self.metadata['arch:hasComponent'] = [component.metadata['dct:title'], component.metadata['dc:identifier']]
+					self.components.append(component)
 
  
 

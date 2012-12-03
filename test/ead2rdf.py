@@ -38,3 +38,6 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
 
     for headroot in ead.headrootlist:
         print f + "|root|" + headroot.encode('utf-8')
+
+    for component in ead.components:
+        print f + "|component|" + component.metadata['dc:identifier'].encode('utf-8') + ": " + component.metadata['dct:title'].encode('utf-8')
