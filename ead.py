@@ -6,7 +6,7 @@ import re
 # This moves to "utils"
 def gettext(elem, ignore=[], newline=[]):
 	text = elem.text or ""
-	text = text.strip()
+	text = text.rstrip()
 	#print elem.tag + "|" + str(newline)
 	#print text
 	#TODO: This is still a little whacky. Got's to work out how to handle this better....
@@ -14,10 +14,74 @@ def gettext(elem, ignore=[], newline=[]):
 		if subelem.tag not in ignore: text = text + " " + gettext(subelem, ignore, newline)
 		if subelem.tag in newline: 
 			#print text
-			text = "\n" + text.lstrip()  + "\n"
+			text = "\n" + text.lstrip() + "\n"
 		if subelem.tail:
 			text = text + subelem.tail.strip()
 	return text
+
+fieldrenamings = {
+	'abstract': 'dct:abstract',
+	'langmaterial': 'arch:langnote',
+	'origination': { 'corpname': 'arch:corpcreator', 'persname': 'arch:perscreator' },
+	'physdesc': 'dc:description',
+	'physloc': 'arch:location',
+	'unitdate': 'dc:date',
+	'normal': 'arch:datenormal',
+	'materialspec': 'arch:materialspec',
+	'accessrestrict': 'arch:restrict',
+	'arrangement': 'arch:arrange',
+	'bibliography': 'arch:bibref',
+	'bioghist': 'arch:bioghist',
+	'controlaccess': { 
+			'corpname': { 'ingest': 'arch:localcorp', 'local': 'arch:localcorp',
+						'nad': 'arch:localcorp', 'naf': 'arch:lccorpname' },
+			'genreform': { 'aat': 'arch:aat', 'lcsh': 'arch:lcgenre',
+							'local': 'arch:localgenre' },
+			'geogname': { 'lcsh': 'arch:lcgeo', 'local': 'arch:localgeo' },
+			'persname': { 'ingest': 'arch:localpers', 'local': 'arch:localpers', 
+							'nad': 'arch:localpers', 'naf': 'arch:lcpers' },
+			'subject': { 'aat': 'arch:aatsub', 'lcsh': 'arch:lcsh', 
+							'local': 'arch:localsub' },
+			'famname': { 'local': 'arch:family', 'ingest': 'arch:family' },
+			'occupation': { 'lcsh': 'arch:occupation' },
+			'title': { 'lcsh': 'lctitle' }
+		},
+	'lcsh': 'arch:fast',
+	'dao': 'arch:webarch',
+	'relatedmaterial': 'arch:related',
+	'scopecontent': 'arch:scope',
+	'separatedmaterial': 'arch:sepmaterial',
+	'userestrict': 'arch:restrict'
+}
+
+def procdid(xfrag):
+	namespace = "{urn:isbn:1-931666-22-9}"
+	md = {}
+	#print "FragTag" + gettext(xfrag).encode('utf-8')
+	for subelem in xfrag:
+		#print "Subelem" + str(subelem)
+		tag = subelem.tag.replace(namespace, '')
+		#print "Tag" + tag
+		if tag == "abstract": md[fieldrenamings[tag]] = gettext(subelem)
+		if tag == "langmaterial":
+			md[fieldrenamings[tag]] = gettext(subelem)
+		if tag == "origination":
+			for child in subelem:
+				chitag = child.tag.replace(namespace, '')
+				if chitag == "corpname": md[fieldrenamings[tag][chitag]] = gettext(child)
+				if chitag == "persname": md[fieldrenamings[tag][chitag]] = gettext(child)
+		if tag == "physdesc": md[fieldrenamings[tag]] = gettext(subelem)
+		if tag == "physloc": md[fieldrenamings[tag]] = gettext(subelem)
+		if tag == "unitdate":
+			md[fieldrenamings[tag]] = gettext(subelem)
+			#print subelem.attrib
+			#if '{http://www.w3.org/1999/xlink}normal' in subelem.attrib:
+			if'normal' in subelem.attrib:
+				md[fieldrenamings['normal']] = subelem.get('normal')
+		if tag == "materialspec": md[fieldrenamings[tag]] = gettext(subelem)
+
+	
+	return md
 
 class Ead(object):
 
@@ -38,7 +102,7 @@ class Ead(object):
 	def __init__(self, ead, fn):
 		"""Generates an EAD object from ElementTree-parsed EAD file; fn to set ID if no eadid element"""
 		''' TODO: Get these via xpaths, or by looping. Maybe a combination of each?'''
-		print fn
+		#print fn
 		namespace = "{urn:isbn:1-931666-22-9}"
 		'''
 		Refactoring this to use lxml...
@@ -48,7 +112,9 @@ class Ead(object):
 ...                           'b': 'http://codespeak.net/ns/test2'})
 		'''
 		self.metadata = {}
-
+		self.headinglist = []
+		self.headrootlist = []
+		self.metadata["File Name"] = fn
 		#print ead.getroot()
 		#print ead.getroot().find('{urn:isbn:1-931666-22-9}eadheader/{urn:isbn:1-931666-22-9}eadid')
 		#for child in ead.getroot():
@@ -62,23 +128,27 @@ class Ead(object):
 		_id = ead.xpath('n:eadheader/n:eadid', namespaces={'n': 'urn:isbn:1-931666-22-9'})
 		#print len(_id)
 		#print gettext(_id)
-		self.metadata['Identifier'] = gettext(_id[0]) if gettext(_id[0]) != " " else fn.replace("-ead.xml", "").replace(".", "_").lower()
+		self.metadata['dc:identifier'] = gettext(_id[0]) if gettext(_id[0]) != "" else fn.replace("-ead.xml", "").replace(".", "_").lower()
 		#print self.metadata['Identifier']
 
 		#Now, start iteration...
 		#So, I feel like there's gotta be a better way to do this. Dict of named functions? Lamdas??
 		archdesc = ead.find('{0}archdesc'.format(namespace))
-		self.metadata['Type'] = archdesc.get("level")
+		self.metadata['dc:type'] = archdesc.get("level")
+		self.metadata['dct:title'] = gettext(ead.find('{0}archdesc/{0}did/{0}unittitle'.format(namespace)))
+		self.metadata['arch:findingaid'] = "http://dlib.nyu.edu/findingaids/html/tamwag/" + self.metadata['dc:identifier']
 
 		for element in archdesc:
 			tag = element.tag.replace(namespace, '')
+			#if tag == "did"
+
 			if tag == "accessrestrict":
-				self.metadata['Restrictions'] = []
+				self.metadata[fieldrenamings[tag]] = []
 				for i in element.findall('{0}p'.format(namespace)):
-					self.metadata['Restrictions'].append(gettext(i))
+					self.metadata[fieldrenamings[tag]].append(gettext(i))
 			if tag == "arrangement":
 				#self.metadata['Arrangement'] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"p"])]
-				self.metadata['Arrangement'] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item"])]
+				self.metadata[fieldrenamings[tag]] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item"])]
 
 				'''
 				Have modded the "gettext" method so it will optionally take a list of elements to strip. 
@@ -94,51 +164,45 @@ class Ead(object):
 					self.metadata['Arrangement'].append(gettext(i))
 				'''
 			if tag == "bibliography":
-				self.metadata['Bibliographic Reference'] = []
+				self.metadata[fieldrenamings[tag]] = []
 				for i in element.findall('{0}bibref'.format(namespace)):
-					self.metadata['Bibliographic Reference'].append(gettext(i, ignore=[namespace+"head"]))
+					self.metadata[fieldrenamings[tag]].append(gettext(i, ignore=[namespace+"head"]))
 			if tag == "bioghist":
-				self.metadata['Biographical/Historical Note'] = [gettext(element)]
+				self.metadata[fieldrenamings[tag]] = [gettext(element)]
 			if tag == "controlaccess":
-				controldict = { 
-			   			'corpname': { 'ingest': 'Local Corporate Name', 'local': 'Local Corporate Name',
-			   							'nad': 'Local Corporate Name', 'naf': 'LC Corporate Name' },
-						'genreform': { 'aat': 'Art & Arch Thesaurus Genre', 'lcsh': 'LC Genre',
-										'local': 'Local Genre Term' },
-						'geogname': { 'lcsh': 'LC Geographic Name', 'local': 'Local Geographic Name' },
-						'persname': { 'ingest': 'Local Personal Name', 'local': 'Local Personal Name', 
-										'nad': 'Local Personal Name', 'naf': 'LC Personal Name' },
-						'subject': { 'aat': 'Art & Arch Thesaurus Subject', 'lcsh': 'LC Subject', 
-										'local': 'Local Subject' },
-						'famname': { 'local': 'Family Name', 'ingest': 'Family Name' },
-						'occupation': { 'lcsh': 'Occupation' },
-						'title': { 'lcsh': 'Title' }
-				}
 				for ca in element:
 					t = ca.tag.replace(namespace, '')
 					s = ca.get('source')
 					text = re.sub(r' \|[A-Za-z] ', ' -- ', gettext(ca))
 					if s == 'lcsh':
-						self.metadata["FAST Heading"] = text.split(' -- ')
-					self.metadata[controldict[t][s]] = text
+						self.metadata[fieldrenamings[s]] = text.split(' -- ')
+					self.headinglist.append(text)
+					headroot = text.split(' -- ')[0].rstrip(".")
+					if headroot not in self.headrootlist: self.headrootlist.append(headroot)
+					#need to redo this so it utilizes "field renamings"
+					self.metadata[fieldrenamings[tag][t][s]] = text
 			if tag == 'dao':
 				href = element.get('{http://www.w3.org/1999/xlink}href')
-				self.metadata["Related Web Archive"] = gettext(element) + ": " + href
+				self.metadata[fieldrenamings[tag]] = gettext(element) + ": " + href
+			if tag == 'did':
+				didmd = procdid(element)
+				#print "Monkey" + str(didmd)
+				self.metadata.update(didmd)
 			if tag == "relatedmaterial":
 				if element.xpath('//n:extref', namespaces={'n': 'urn:isbn:1-931666-22-9'}): 
 					extref = element.xpath('//n:extref', namespaces={'n': 'urn:isbn:1-931666-22-9'})[0]
-					href = extref.get('{http://www.w3.org/1999/xlink}href')
+					href = extref.get('{http://www.w3.org/1999/xlink}href') if '{http://www.w3.org/1999/xlink}href' in extref else ""
 				else:
 					href = ""
-				self.metadata["Related Mateirals"] = gettext(element, ignore=[namespace+"head"], newline=[namespace+"item"]) + " " + href
+				self.metadata[fieldrenamings[tag]] = gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"extref"]) + " " + href
 				#root.xpath("//article[@type='news']")
 			if tag == 'scopecontent':
-				self.metadata["Scope Note"] = gettext(element, ignore=[namespace+"head"])
+				self.metadata[fieldrenamings[tag]] = gettext(element, ignore=[namespace+"head"])
 			if tag == 'separatedmaterial':
 				self.metadata["Separated Materials Note"] = gettext(element, ignore=[namespace+"head"])
 			if tag == 'userestrict':
-				if 'Restrictions' not in self.metadata: self.metadata['Restrictions'] = []
-				self.metadata['Restrictions'].append(gettext(element, ignore=[namespace+"head"]))
+				if fieldrenamings[tag] not in self.metadata: self.metadata[fieldrenamings[tag]] = []
+				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
 
  
 
