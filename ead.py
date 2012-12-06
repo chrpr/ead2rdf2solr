@@ -3,6 +3,8 @@ from lxml import etree
 import rdflib
 import re
 from component import Component
+from rdflib import Graph, URIRef, Namespace, Literal
+
 
 # This moves to "utils"
 def gettext(elem, ignore=[], newline=[]):
@@ -45,7 +47,7 @@ fieldrenamings = {
 							'local': 'arch:localsub' },
 			'famname': { 'local': 'arch:family', 'ingest': 'arch:family' },
 			'occupation': { 'lcsh': 'arch:occupation' },
-			'title': { 'lcsh': 'lctitle' }
+			'title': { 'lcsh': 'arch:lctitle' }
 		},
 	'lcsh': 'arch:fast',
 	'dao': 'arch:webarch',
@@ -117,7 +119,7 @@ class Ead(object):
 		self.headrootlist = []
 		# currently self.components is only *immediate* children, not ancestors. Components will have components will have components, though....
 		self.components = []
-		self.metadata["File Name"] = fn
+		#self.metadata["File Name"] = fn
 		#print ead.getroot()
 		#print ead.getroot().find('{urn:isbn:1-931666-22-9}eadheader/{urn:isbn:1-931666-22-9}eadid')
 		#for child in ead.getroot():
@@ -202,7 +204,7 @@ class Ead(object):
 			if tag == 'scopecontent':
 				self.metadata[fieldrenamings[tag]] = gettext(element, ignore=[namespace+"head"])
 			if tag == 'separatedmaterial':
-				self.metadata["Separated Materials Note"] = gettext(element, ignore=[namespace+"head"])
+				self.metadata[fieldrenamings[tag]] = gettext(element, ignore=[namespace+"head"])
 			if tag == 'userestrict':
 				if fieldrenamings[tag] not in self.metadata: self.metadata[fieldrenamings[tag]] = []
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
@@ -214,9 +216,66 @@ class Ead(object):
 					self.metadata['arch:hasComponent'] = [component.metadata['dct:title'], component.metadata['dc:identifier']]
 					self.components.append(component)
 
- 
+	def makeGraph(self):
+		"""Generates an internal RDF Graph of the EAD Object"""
+		''' TODO: Should this be private?
+		Also, currently using Graph rather than ConjunectiveGraph because I want to persist my graph IDs:
+		https://rdflib.readthedocs.org/en/latest/graphs_bnodes.html
+		But it's possible that I want to do establish the identifiers at time of 4store persist or serialization?
+		Otherwise I'm naming this thing each time I graph an EAD instance, which is *not* my goal, no?
+		'''
+		self.graph = rdflib.Graph(identifier="http://chrpr.com/data/ead.rdf")
+		uri = URIRef("http://chrpr.com/data/" + str(self.metadata["dc:identifier"]) + ".rdf")
+		namespaces = {
+			"dc": Namespace("http://purl.org/dc/elements/1.1/"),
+			"dct": Namespace("http://purl.org/dc/terms/"),
+			"arch": Namespace("http://chrpr.com/arch/")
+		}
+		curies = { "dc": "DC", "dct": "DCTERMS", "arch": "ARCH" }
+		self.graph.bind("dc", "http://purl.org/dc/elements/1.1/")
+		self.graph.bind("dct", "http://purl.org/dc/terms/")
+		self.graph.bind("arch", "http://chrpr.com/arch/")
+		for k, v, in self.metadata.iteritems():
+			#ns = curies[k.split(":")[0]]
+			#p = ns[k.split(":")[1]]
+			#p = curies[k.split(":")[0]][k.split(":")[1]]
+			p = namespaces[k.split(":")[0]][k.split(":")[1]]
+			#print p
+			self.graph.add([uri, p, Literal(v, lang='en') ])
+			#print len(self.graph)
+		#print self.graph.serialize(format="turtle")
+		''' So, something like this:
+		g = Graph(identifier="http://chrpr.com/data/ead.rdf")
+		>>> for k, v in ead.metadata.iteritems():
+...     p = URIRef("http://chrpr.com/arch" + k)
+...     g.add([uri, p, Literal(v, lang='en')])
 
+		... g.namespace_manager.reset()
+		  File "<stdin>", line 5
+		    g.namespace_manager.reset()
+		    ^
+		SyntaxError: invalid syntax
+		>>> g.namespace_manager
+		<rdflib.namespace.NamespaceManager object at 0x273b950>
+		>>> g.namespace_manager.reset()
+		>>> g.namespace_manager.bind("arch", "http://chrpr.com/arch#")
+		>>> g.namespace_manager.bind("dct", "http://chrpr.com/dct#")
+		>>> g.namespace_manager.bind("dc", "http://chrpr.com/dc#")
+		>>> of2 = open('archturtle2.ttl', 'w')
+		>>> g.serialize(format="turtle", destination=of2)
 
+		'''
+	def output(self, format="turtle"):
+		if not hasattr(self, "graph"):
+			self.makeGraph()
+
+		of = "rdf/" + self.metadata["dc:identifier"] + ".ttl"
+		self.graph.serialize(format=format, destination = of)
+
+		#self.graph.serialize(format=format, destination = "rdf/cheese.ttl")
+		print of
+		#self.graph.serialize(format=format, distination = "rdf/monkey.ttl")
+		#print "No graph exists"
 		''' Working block from here to end of ' ' '
 		Replacing with a "for element in" that's going to go chunk by chunk
 		restrict = ead.find('{0}archdesc/{0}accessrestrict'.format(namespace))

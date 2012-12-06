@@ -6,6 +6,13 @@ import codecs
 import re
 from ead import Ead
 
+def printComponents(components):
+    for component in components:
+        if 'arch:hasParent' in component.metadata.keys():
+            print f + "|" + component.metadata['dc:identifier'].encode('utf-8') + ": " + component.metadata['dct:title'].encode('utf-8') + "|hasParent|" + component.metadata['arch:hasParent']
+        else:
+            print f + "|" + component.metadata['dc:identifier'].encode('utf-8') + ": " + component.metadata['dct:title'].encode('utf-8') + "|hasParent|Top Level"
+        if component.components: printComponents(component.components)
 #iterate through files
 path = ''
 for f in glob.glob( os.path.join(path, '*.xml') ):
@@ -21,7 +28,7 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
     #print f
     #if f == "ALBA.PHOTO.015-ead.xml":
     #print 'Title: {0}; ID: {1}; Access Restrictions: {2}'.format(ead.title.encode('utf-8'), ead.identifier.encode('utf-8'), ead.restrictions.encode('utf-8'))
-
+    '''
     for k in ead.metadata:
         print k
 
@@ -38,6 +45,9 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
 
     for headroot in ead.headrootlist:
         print f + "|root|" + headroot.encode('utf-8')
+    '''
+    #printComponents(ead.components)
+    ead.output()
 
-    for component in ead.components:
-        print f + "|component|" + component.metadata['dc:identifier'].encode('utf-8') + ": " + component.metadata['dct:title'].encode('utf-8')
+
+

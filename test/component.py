@@ -113,6 +113,7 @@ class Component(object):
 		self.metadata = {}
 		self.headinglist = []
 		self.headrootlist = []
+		self.components = []
 		#print ead.getroot()
 		#print ead.getroot().find('{urn:isbn:1-931666-22-9}eadheader/{urn:isbn:1-931666-22-9}eadid')
 		#for child in ead.getroot():
@@ -128,6 +129,8 @@ class Component(object):
 		self.metadata['dct:title'] = gettext(xfrag.find('{0}did/{0}unittitle'.format(namespace)))
 		self.metadata['arch:findingaid'] = eadob.metadata['arch:findingaid']
 		self.metadata['arch:inCollection'] = eadob.metadata['dct:title']
+		if args:
+			self.metadata['arch:hasParent'] = args[0].metadata['dct:title']
 
 
 		for element in xfrag:
@@ -194,3 +197,8 @@ class Component(object):
 			if tag == 'userestrict':
 				if fieldrenamings[tag] not in self.metadata: self.metadata[fieldrenamings[tag]] = []
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
+			if tag == 'c':
+					component = Component(element, eadob, self)
+					# TODO Add this to field renamings!
+					self.metadata['arch:hasComponent'] = [component.metadata['dct:title'], component.metadata['dc:identifier']]
+					self.components.append(component)
