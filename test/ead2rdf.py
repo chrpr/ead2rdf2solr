@@ -5,6 +5,7 @@ import sys
 import codecs
 import re
 from ead import Ead
+from time import localtime, strftime
 
 def printComponents(components):
     for component in components:
@@ -23,6 +24,9 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
     #print '{0} -> {1}'.format(file, tree.getroot())
     #if generate_rdf(tree.getroot()) == " ": 
     #	print '{0}|{1}'.format(f, generate_rdf(tree.getroot()))
+    time = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+    print  '{0}: {1}'.format(f, time)
+
     root = etree.parse(f)
     ead = Ead(root, f)
     #print f
@@ -47,7 +51,8 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
         print f + "|root|" + headroot.encode('utf-8')
     '''
     #printComponents(ead.components)
-    ead.output()
-
+    #ead.output()
+    #ead.fourstore()
+    ead.makeSolr()
 
 
