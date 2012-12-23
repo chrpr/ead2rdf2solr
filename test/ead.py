@@ -4,137 +4,10 @@ import rdflib
 import re
 import sunburnt
 from component import Component
+from utils import *
+from configs import *
 from rdflib import Graph, URIRef, Namespace, Literal
 from HTTP4Store import HTTP4Store
-
-# This moves to "utils"
-def gettext(elem, ignore=[], newline=[]):
-	text = elem.text or ""
-	text = text.rstrip()
-	#print elem.tag + "|" + str(newline)
-	#print text
-	#TODO: This is still a little whacky. Got's to work out how to handle this better....
-	for subelem in elem:
-		if subelem.tag not in ignore: text = text + " " + gettext(subelem, ignore, newline)
-		if subelem.tag in newline: 
-			#print text
-			text = "\n" + text.lstrip() + "\n"
-		if subelem.tail:
-			text = text + subelem.tail.strip()
-	return text
-
-fieldrenamings = {
-	'abstract': 'dct:abstract',
-	'langmaterial': 'arch:langnote',
-	'origination': { 'corpname': 'arch:corpcreator', 'persname': 'arch:perscreator' },
-	'physdesc': 'dc:description',
-	'physloc': 'arch:location',
-	'unitdate': 'dc:date',
-	'normal': 'arch:datenormal',
-	'materialspec': 'arch:materialspec',
-	'accessrestrict': 'arch:restrict',
-	'arrangement': 'arch:arrange',
-	'bibliography': 'arch:bibref',
-	'bioghist': 'arch:bioghist',
-	'controlaccess': { 
-			'corpname': { 'ingest': 'arch:localcorp', 'local': 'arch:localcorp',
-						'nad': 'arch:localcorp', 'naf': 'arch:lccorpname' },
-			'genreform': { 'aat': 'arch:aat', 'lcsh': 'arch:lcgenre',
-							'local': 'arch:localgenre' },
-			'geogname': { 'lcsh': 'arch:lcgeo', 'local': 'arch:localgeo' },
-			'persname': { 'ingest': 'arch:localpers', 'local': 'arch:localpers', 
-							'nad': 'arch:localpers', 'naf': 'arch:lcpers' },
-			'subject': { 'aat': 'arch:aatsub', 'lcsh': 'arch:lcsh', 
-							'local': 'arch:localsub' },
-			'famname': { 'local': 'arch:family', 'ingest': 'arch:family' },
-			'occupation': { 'lcsh': 'arch:occupation' },
-			'title': { 'lcsh': 'arch:lctitle' }
-		},
-	'lcsh': 'arch:fast',
-	'dao': 'arch:webarch',
-	'relatedmaterial': 'arch:related',
-	'scopecontent': 'arch:scope',
-	'separatedmaterial': 'arch:sepmaterial',
-	'userestrict': 'arch:restrict'
-}
-
-solrfields = {
-	'dc:identifier': 'id',
-	'dc:type': 'format',
-	'dct:title': ['title_display', 'title_t'],
-	'arch:findingaid': 'url_suppl_display',
-	'dct:abstract': 'TODO',
-	'arch:langnote': 'TODO',
-	'arch:corpcreator': ['author_display', 'author_t'],
-	'arch:perscreator': ['author_display', 'author_t'],
-	'dc:description': 'TODO',
-	'arch:location': 'TODO',
-	'dc:date': 'TODO',
-	'arch:datenormal': 'TODO', #was pub_date, but breaks validation?
-	'arch:materialspec': 'TODO',
-	'arch:restrict': 'TODO',
-	'arch:arrange': 'TODO',
-	'arch:bibref': 'TODO',
-	'arch:bioghist': 'TODO',
-	'arch:localcorp': 'subject_topic_facet', 
-	'arch:lccorpname': 'subject_topic_facet',
-	'arch:aat': 'subject_topic_facet', 
-	'arch:lcgenre': 'subject_topic_facet',
-	'arch:localgenre': 'subject_topic_facet',
-	'arch:lcgeo': 'subject_geo_facet', 
-	'arch:localgeo': 'subject_geo_facet',
-	'arch:localpers': 'subject_topic_facet',
-	'arch:lcpers': 'subject_topic_facet',
-	'arch:aatsub': 'subject_topic_facet',
-	'arch:lcsh': 'subject_topic_facet', 
-	'arch:localsub': 'subject_topic_facet',
-	'arch:family': 'TODO',
-	'arch:occupation': 'TODO',
-	'arch:lctitle': 'TODO',
-	'arch:fast': 'subject_topic_facet',
-	'arch:webarch': 'url_suppl_display',
-	'arch:related': 'TODO',
-	'arch:scope': 'TODO',
-	'arch:sepmaterial': 'TODO',
-	'arch:restrict': 'TODO',
-	'arch:hasComponent': 'TODO',
-	'arch:inCollection': 'TODO',
-	'arch:hasParent': 'TODO'
-}
-
-def procdid(xfrag):
-	namespace = "{urn:isbn:1-931666-22-9}"
-	md = {
-		'dct:abstract': [], 'arch:langnote': [], 'arch:corpcreator': [], 'arch:perscreator': [],
-		'dc:description': [], 'arch:location': [], 'dc:date': [], 'arch:datenormal': [],
-		'arch:materialspec': [],
-	}
-
-	#print "FragTag" + gettext(xfrag).encode('utf-8')
-	for subelem in xfrag:
-		#print "Subelem" + str(subelem)
-		tag = subelem.tag.replace(namespace, '')
-		#print "Tag" + tag
-		if tag == "abstract": md[fieldrenamings[tag]].append(gettext(subelem))
-		if tag == "langmaterial":
-			md[fieldrenamings[tag]].append(gettext(subelem))
-		if tag == "origination":
-			for child in subelem:
-				chitag = child.tag.replace(namespace, '')
-				if chitag == "corpname": md[fieldrenamings[tag][chitag]].append(gettext(child))
-				if chitag == "persname": md[fieldrenamings[tag][chitag]].append(gettext(child))
-		if tag == "physdesc": md[fieldrenamings[tag]].append(gettext(subelem))
-		if tag == "physloc": md[fieldrenamings[tag]].append(gettext(subelem))
-		if tag == "unitdate":
-			md[fieldrenamings[tag]].append(gettext(subelem))
-			#print subelem.attrib
-			#if '{http://www.w3.org/1999/xlink}normal' in subelem.attrib:
-			if'normal' in subelem.attrib:
-				md[fieldrenamings['normal']].append(subelem.get('normal'))
-		if tag == "materialspec": md[fieldrenamings[tag]].append(gettext(subelem))
-
-	
-	return md
 
 class Ead(object):
 
@@ -270,7 +143,7 @@ class Ead(object):
 				for c in element:
 					component = Component(c, self)
 					# TODO Add this to field renamings!
-					self.metadata['arch:hasComponent'].append(component.metadata['arch:inCollection'][0] + '-' + component.metadata['dc:identifier'][0])
+					self.metadata['arch:hasComponent'].append(component.metadata['dc:identifier'][0])
 					self.components.append(component)
 
 	def makeSolr(self):
@@ -280,22 +153,49 @@ class Ead(object):
 		#recstring = ''
 		for sf in solrfields.itervalues():
 			if sf != 'TODO':
+				#Initiate all arrays:
+				record[sf] = []
+				'''
+				This block also no longer needed (20121220):
 				if type(sf) == list:
 					for f in sf: record[f]  = []
 				if type(sf) == str: record[sf] = []
+				'''
 		for k, v in self.metadata.iteritems():
 			#if k == "arch:perscreator": 
+			if solrfields[k] != 'TODO':
+				#print type(solrfields[k])
+				for val in v: 
+					if len(val) > 0: record[solrfields[k]].append(val)
+					#else: record[solrfields[k]] = val
+		authors = self.metadata['arch:corpcreator'] + self.metadata['arch:perscreator']
+		if len(authors) > 0: record['author_display'] = "; ".join(authors)
+		record['title_display'] = self.metadata['dct:title']
+		record['type_facet'] = "Archival Finding Aid"
+		#if this finds dupes, try the next version:
+		#if len(self.metadata['dct:title']) > 0: record['title_display'] = self.metadata['dct:title'].join("; ")
+		for k, v in record.items():
+			if len(v) == 0:
+				del record[k]
 			'''
+			update 20121220: redoing this chunk of code....
+			The only "list based" mappings in the whole thing were:
+				'dct:title': ['title_display', 'title_t'],
+				'arch:corpcreator': ['author_display', 'author_t'],
+				'arch:perscreator': ['author_display', 'author_t'],
+			So, instead of the having lists, let's just treat author_display & title_display as special cases....	
+			
 			Okay, Got's a lot of problems here:
 			Notably, author_display is *not* multi-val in blacklight's solr. 
 			So, I either need to *make* it multi-val & prob break the app logic...
 			or I need to combine them or only take one....
-			'''
-
+		
+			#This, I can get rid of...
 			if k == 'arch:perscreator' or k == 'arch:corpcreator': 
 				#print "pre: " + str(v)
 				v = ["; ".join(v)]
 				#print "post: "+ str(v)
+			#This is temporary, holding while I finish mappings.
 			if solrfields[k] != 'TODO':
 				#print type(solrfields[k])
 				for val in v: 
@@ -303,14 +203,19 @@ class Ead(object):
 						for f in solrfields[k]:
 							#print f
 							#print record[f]
+							#Why the fuck do I have this if len(record[f]) == 0? 
+							# Isn't that basically saying only write the value if it hasn't already been written?
+							# Ah, right, it's because my only list versions are display fields. 
+							#Let's actually wipe that whole thing...
 							if len(record[f]) == 0: record[f].append(val)
 							#else: record[f] = val
 					else: 
 						if len(val) >= 1: record[solrfields[k]].append(val)
 						#else: record[solrfields[k]] = val
 		#print record
-		for k, v in record.iteritems():
-			print "{0}: {1}".format(k, v)
+		'''
+		#for k, v in record.iteritems():
+		#	print "{0}: {1}".format(k, v)
 		s.add(record)
 		s.commit()
 		#s.commit()
