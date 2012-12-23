@@ -1,12 +1,14 @@
 import re
 import codecs
+from utils import *
 
-heads2 = codecs.open('headscleaned.txt', 'a', encoding='utf-8')
-pers = codecs.open('persnames.txt', 'a', encoding='utf-8')
-corp = codecs.open('corpnames.txt', 'a', encoding='utf-8')
-geo = codecs.open('geognames.txt', 'a', encoding='utf-8')
-top = codecs.open('topics.txt', 'a', encoding='utf-8')
-facets = codecs.open('facets.txt', 'a', encoding='utf-8')
+heads = codecs.open('headstrings2.txt', 'a', encoding='utf-8')
+heads2 = codecs.open('headscleaned2.txt', 'a', encoding='utf-8')
+pers = codecs.open('persnames2.txt', 'a', encoding='utf-8')
+corp = codecs.open('corpnames2.txt', 'a', encoding='utf-8')
+geo = codecs.open('geognames2.txt', 'a', encoding='utf-8')
+top = codecs.open('topics2.txt', 'a', encoding='utf-8')
+facets = codecs.open('facets2.txt', 'a', encoding='utf-8')
 
 class Entity(object):
 	"""
@@ -38,6 +40,9 @@ class Entity(object):
 		(Currently headings strips everything after the "--", which dumps |v from persname tags
 		and removes uncoded subdivisions. Want to preserve the actual strings, though...)
 		''' 
+		heads.write(type + "|" + text + "\n")
+		catext = text.split("--")[0]
+
 		heads2.write(text + "\n")
 		headlist = text.split("|")
 		if type != "genreform":
@@ -47,20 +52,20 @@ class Entity(object):
 			for sf in subs:
 				subfields.append([sf[0:1], sf[2:]])
 
-			if type == "persname":
+			#if type == "persname":
 				# TamWag persnames have no subfields (except |v, which is already stripped)
 
 
 			'''
-
 			Okay, this is where business logic gets tricky:
-				- first element of headlist is "root"
-				- remaining elements go in a "subs" dict coded by type
+				- first element of headlist is root
+				- remaining elements go in a subs dict coded by type:
 					but it's not really a dict because elements have to be repeatable!
 					so it's really an ordered list of typed things?
 					Yep, that's the way to do this:
 						- subhead obj w/ type / value pairs
 						- Actually, maybe this is just an array of tuples?
+			stupid whitespace
 			'''
 			self.root = root.rstrip()
 
