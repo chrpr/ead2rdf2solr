@@ -7,13 +7,13 @@ import os
 import re
 
 path = ''
-heads = codecs.open('headstrings.txt', 'w', encoding='utf-8')
-heads2 = codecs.open('headscleaned.txt', 'w', encoding='utf-8')
-pers = codecs.open('persnames.txt', 'w', encoding='utf-8')
-corp = codecs.open('corpnames.txt', 'w', encoding='utf-8')
-geo = codecs.open('geognames.txt', 'w', encoding='utf-8')
-top = codecs.open('topics.txt', 'w', encoding='utf-8')
-facets = codecs.open('facets.txt', 'w', encoding='utf-8')
+heads = codecs.open('headstrings2.txt', 'w', encoding='utf-8')
+heads2 = codecs.open('headscleaned2.txt', 'w', encoding='utf-8')
+pers = codecs.open('persnames2.txt', 'w', encoding='utf-8')
+corp = codecs.open('corpnames2.txt', 'w', encoding='utf-8')
+geo = codecs.open('geognames2.txt', 'w', encoding='utf-8')
+top = codecs.open('topics2.txt', 'w', encoding='utf-8')
+facets = codecs.open('facets2.txt', 'w', encoding='utf-8')
 
 elements = []
 
@@ -32,6 +32,9 @@ for fn in glob.glob( os.path.join(path, '*.xml') ):
 		## http://en.wikipedia.org/wiki/Vincent_R._Impellitteri
 
 		'''
+
+		This logic has been moved to "entity"
+
 		First off, get rid of everything after the "--". 
 		These are generally either a $$v or an unhelpful (and uncoded) persname subdivision.
 		Save the rest into a nice "elements" array, and also write the output 
@@ -41,9 +44,10 @@ for fn in glob.glob( os.path.join(path, '*.xml') ):
 		if tag == "controlaccess":
 			for ca in element:
 				catag = ca.tag.replace(namespace, '')
-				heads.write(catag + "|" + gettext(ca) + "\n")
+				catext = gettext(ca)
+				#heads.write(catag + "|" + gettext(ca) + "\n")
 				#print catag + "|" + gettext(ca).encode('utf-8')
-				catext = gettext(ca).split("--")[0]
+				#catext = gettext(ca).split("--")[0]
 				#elements.append(catag + "|" + catext)
 				entity = Entity(catag, catext)
 		if tag == "did":
@@ -52,9 +56,10 @@ for fn in glob.glob( os.path.join(path, '*.xml') ):
 				if didtag == "origination":
 					for name in dider:
 						nametag = name.tag.replace(namespace, '')
+						nametext = gettext(name)
 						#print nametag + "|" + gettext(name).encode('utf-8')
-						heads.write(nametag + "|" + gettext(name) + "\n")
-						nametext = gettext(name).split("--")[0]
+						#heads.write(nametag + "|" + gettext(name) + "\n")
+						#nametext = gettext(name).split("--")[0]
 						#elements.append(nametag + "|" + nametext)
 						entity = Entity(nametag, nametext)
 

@@ -17,6 +17,7 @@ def printComponents(components):
             print f + "|" + component.metadata['dc:identifier'].encode('utf-8') + ": " + component.metadata['dct:title'].encode('utf-8') + "|hasParent|Top Level"
         if component.components: printComponents(component.components)
 #iterate through files
+#this should actually take the path from the command line!
 path = ''
 count = 0
 for f in glob.glob( os.path.join(path, '*.xml') ):

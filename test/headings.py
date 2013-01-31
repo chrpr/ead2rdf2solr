@@ -32,6 +32,9 @@ for fn in glob.glob( os.path.join(path, '*.xml') ):
 		## http://en.wikipedia.org/wiki/Vincent_R._Impellitteri
 
 		'''
+
+		This logic has been moved to "entity"
+
 		First off, get rid of everything after the "--". 
 		These are generally either a $$v or an unhelpful (and uncoded) persname subdivision.
 		Save the rest into a nice "elements" array, and also write the output 
