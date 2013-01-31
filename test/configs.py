@@ -1,4 +1,4 @@
-
+analyze = False
 
 fieldrenamings = {
 	'abstract': 'dct:abstract',

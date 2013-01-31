@@ -1,19 +1,21 @@
 from lxml import etree
 import codecs
 from utils import *
+from configs import *
 from entity import Entity
 import glob
 import os
 import re
 
 path = ''
-heads = codecs.open('headstrings2.txt', 'w', encoding='utf-8')
-heads2 = codecs.open('headscleaned2.txt', 'w', encoding='utf-8')
-pers = codecs.open('persnames2.txt', 'w', encoding='utf-8')
-corp = codecs.open('corpnames2.txt', 'w', encoding='utf-8')
-geo = codecs.open('geognames2.txt', 'w', encoding='utf-8')
-top = codecs.open('topics2.txt', 'w', encoding='utf-8')
-facets = codecs.open('facets2.txt', 'w', encoding='utf-8')
+if analyze == True:
+	heads = codecs.open('headstrings2.txt', 'w', encoding='utf-8')
+	heads2 = codecs.open('headscleaned2.txt', 'w', encoding='utf-8')
+	pers = codecs.open('persnames2.txt', 'w', encoding='utf-8')
+	corp = codecs.open('corpnames2.txt', 'w', encoding='utf-8')
+	geo = codecs.open('geognames2.txt', 'w', encoding='utf-8')
+	top = codecs.open('topics2.txt', 'w', encoding='utf-8')
+	facets = codecs.open('facets2.txt', 'w', encoding='utf-8')
 
 elements = []
 
