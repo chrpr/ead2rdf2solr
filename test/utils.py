@@ -1,4 +1,5 @@
 from configs import *
+from entity import Entity
 
 def gettext(elem, ignore=[], newline=[]):
 	text = elem.text or ""
@@ -22,6 +23,8 @@ def procdid(xfrag):
 		'dc:description': [], 'arch:location': [], 'dc:date': [], 'arch:datenormal': [],
 		'arch:materialspec': [],
 	}
+	entities = []
+
 
 	#print "FragTag" + gettext(xfrag).encode('utf-8')
 	for subelem in xfrag:
@@ -34,9 +37,16 @@ def procdid(xfrag):
 			for subsub in subelem:
 				if subsub.tag.replace(namespace, '') == 'language':
 					md['dc:language'].append(subsub.get('langcode'))
+		#TODO: This is one piece of entity processing....
+		# Fucker -- how to deal with component side?
 		if tag == "origination":
 			for child in subelem:
 				chitag = child.tag.replace(namespace, '')
+				chisource = child.get('source')
+				#right, so this needs to define an entity & return it,
+				#so I need to make sure I parse this from return
+				entity = Entity(chitag, gettext(child), chisource)
+				entities.append(entity)
 				if chitag == "corpname": md[fieldrenamings[tag][chitag]].append(gettext(child))
 				if chitag == "persname": md[fieldrenamings[tag][chitag]].append(gettext(child))
 		if tag == "physdesc": md[fieldrenamings[tag]].append(gettext(subelem))
@@ -50,4 +60,4 @@ def procdid(xfrag):
 		if tag == "materialspec": md[fieldrenamings[tag]].append(gettext(subelem))
 
 	
-	return md
+	return md, entities

@@ -4,6 +4,7 @@ import rdflib
 import re
 import sunburnt
 from component import Component
+from entity import Entity
 from utils import *
 from configs import *
 from rdflib import Graph, URIRef, Namespace, Literal
@@ -45,7 +46,9 @@ class Ead(object):
 			'arch:related': [],	'arch:restrict': [], 'arch:scope': [],'arch:sepmaterial': [], 'arch:webarch': [],
 			'arch:hasComponent': []
 		}
-
+		#This is the set of entities related to the object.
+		#Should be fine if they're dupes, as the top level processing will tweak them.
+		self.entities = []
 		self.headinglist = []
 		self.headrootlist = []
 		# currently self.components is only *immediate* children, not ancestors. Components will have components will have components, though....
@@ -105,11 +108,22 @@ class Ead(object):
 					self.metadata[fieldrenamings[tag]].append(gettext(i, ignore=[namespace+"head"]))
 			if tag == "bioghist":
 				self.metadata[fieldrenamings[tag]].append(gettext(element))
+			#TODO: This is one piece of entity processing....
+			#Ouch. The other is in "utils.py" under origination in did processing...
+			#Either way, she needs re-working...
 			if tag == "controlaccess":
 				for ca in element:
 					t = ca.tag.replace(namespace, '')
 					s = ca.get('source')
+					#20130202 -- adding entity processing
+					#also need to revisit the headinglist processing below...
+					entity = Entity(t, gettext(ca), s)
+					if hasattr(entity, 'metadata'):
+						entity.collections.append(self.metadata["dc:identifier"][0])
+						self.entities.append(entity)
+					print gettext(ca).encode('utf-8')
 					text = re.sub(r' \|[A-Za-z] ', ' -- ', gettext(ca))
+					##TODO: 20130202: Do I really want to limit this to lcsh?
 					if s == 'lcsh':
 						self.metadata[fieldrenamings[s]].extend(text.split(' -- '))
 					self.headinglist.append(text)
@@ -121,7 +135,7 @@ class Ead(object):
 				href = element.get('{http://www.w3.org/1999/xlink}href')
 				self.metadata[fieldrenamings[tag]].append(gettext(element) + ": " + href)
 			if tag == 'did':
-				didmd = procdid(element)
+				didmd, origentities = procdid(element)
 				#print "Monkey" + str(didmd)
 				self.metadata.update(didmd)
 			if tag == "relatedmaterial":
@@ -139,12 +153,15 @@ class Ead(object):
 			if tag == 'userestrict':
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
 
+			#20130202: commenting out components processing for a bit
+			'''
 			if tag == 'dsc':
 				for c in element:
 					component = Component(c, self)
 					# TODO Add this to field renamings!
 					self.metadata['arch:hasComponent'].append(component.metadata['dc:identifier'][0])
 					self.components.append(component)
+			'''
 
 	def makeSolr(self):
 		"""Sends SOLR Updates based on current schema"""

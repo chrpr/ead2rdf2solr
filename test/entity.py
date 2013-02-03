@@ -19,6 +19,12 @@ class Entity(object):
 	***TODO: Update docstrings!!! ***
 	Contains 3 constuctors: 
 		- __init__, which generates from EAD files
+			Thought init took: 	self, type, text, obj_dict="None", *args
+			But prob don't need dict or args, instead adding:
+			 * source (which I'm going to move to "vocab")
+			 * Source tag (TODO: which I'll maybe 
+			 	associate with "reverse property" creatorOf, subjectOf)
+
 		- factory method to generate from RDF (Maybe)
 		- factory method to generate from SPARQL queries (Maybe)
 	Contains an "enrichment" method?
@@ -32,7 +38,7 @@ class Entity(object):
 		- Stretch goal: Writing XML for Primo imput?
 	"""
 
-	def __init__(self, type, text, obj_dict="None", *args):
+	def __init__(self, type, text, vocab):
 		"""
 		Generates a candidate entity object from an access point
 		Pre-processes text & checks to see if entity exists
@@ -42,8 +48,13 @@ class Entity(object):
 
 		if analyze == True: heads2.write(catext + "\n")
 		headlist = catext.split("|")
+		## 20130202: Code pulled from ead.py:
+		## TODO: Refine this:
+		self.headings = [re.sub(r' \|[A-Za-z] ', ' -- ', text)]
+		self.collections = []
+
 		## Wait, maybe I don't even need this?
-		if type != "genreform":
+		if type != "genreform" and type != "famname" and type != "occupation" and type != "title":
 			root = headlist[0]
 			subs = headlist[1:]
 			subfields = []
@@ -51,6 +62,7 @@ class Entity(object):
 				subfields.append([sf[0:1], sf[2:]])
 			
 			self.metadata = {}
+
 			if type == "persname":
 				# TamWag persnames have no subfields (except |v, which is already stripped)
 				# This set of patterns grabs regular & ca. dates, but not b. & d. 
@@ -186,12 +198,13 @@ class Entity(object):
 			#printing out all the metadatas to screen.
 			#if 'type' in self.metadata and self.metadata['type'] == "place":
 			#TODO: THIS GOES AWAY SOON
+			'''
 			print catext.encode('utf-8')
 			for k, v, in self.metadata.iteritems():
 				#print k + " is a " + type(v)
 				#if type(v) == "str":
 				print "{0}: {1}".format(k, v)
-			
+			'''
 
 			if analyze == True: 
 				self.root = root.rstrip()
