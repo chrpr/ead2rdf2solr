@@ -26,15 +26,8 @@ class Component(object):
 
 	def __init__(self,  xfrag, eadob, *args):
 		"""Generates a component object from an xml fragment, an EAD object & option parent component"""
-		#print fn
 		namespace = "{urn:isbn:1-931666-22-9}"
-		'''
-		Refactoring this to use lxml...
-		Play with:
-		>>> r = doc.xpath('/t:foo/b:bar',
-...               namespaces={'t': 'http://codespeak.net/ns/test1',
-...                           'b': 'http://codespeak.net/ns/test2'})
-		'''
+
 		self.metadata = {
 			'arch:aat': [],	'arch:aatsub': [], 'arch:arrange': [], 'arch:bibref': [], 'arch:bioghist': [],
 			'arch:family': [], 'arch:fast': [], 'arch:lccorpname': [], 'arch:lcgenre': [], 'arch:lcgeo': [], 
@@ -46,16 +39,7 @@ class Component(object):
 		self.headinglist = []
 		self.headrootlist = []
 		self.components = []
-		#print ead.getroot()
-		#print ead.getroot().find('{urn:isbn:1-931666-22-9}eadheader/{urn:isbn:1-931666-22-9}eadid')
-		#for child in ead.getroot():
-		#	print child.tag
-		#self.identifier = gettext(ead.find(n + 'eadheader/' + n + 'eadid'))
 
-		#First, get identifier
-		#_id = ead.find('{0}eadheader/{0}eadid'.format(namespace))
-		# okay, so after installing lxml and switching over, it actually makes very little difference.
-		# Will leave lxml as my tool of choice, but keep using the findall & find methods for compatability with ElementTree...
 		self.metadata['dc:identifier'] = [eadob.metadata['dc:identifier'][0] + '-' + xfrag.get('id')]
 		self.metadata['dc:type'] = [xfrag.get("level")]
 		self.metadata['dct:title'] = [gettext(xfrag.find('{0}did/{0}unittitle'.format(namespace)))]
@@ -65,6 +49,7 @@ class Component(object):
 		#don't want titles in these , right? Wait... These should all be ids, but then I'll... Ugh. Pain in ass! Monkey-fucker!
 		#Actually, it's okay, because above example "inCollection" is actually 2 elements, not an element with 2 values...
 		#Works for unique elements like these (inColleciton, hasParent), but *not* for repeatables like arch:hasComponent
+		#TODO: 20130205: Can this shizzle be made a linkeylink?
 
 		if args:
 			self.metadata['arch:hasParent'] = [args[0].metadata['dc:identifier'][0], args[0].metadata['dct:title'][0]]
@@ -72,28 +57,12 @@ class Component(object):
 
 		for element in xfrag:
 			tag = element.tag.replace(namespace, '')
-
 			if tag == "accessrestrict":
 				self.metadata[fieldrenamings[tag]] = []
 				for i in element.findall('{0}p'.format(namespace)):
 					self.metadata[fieldrenamings[tag]].append(gettext(i))
 			if tag == "arrangement":
-				#self.metadata['Arrangement'] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"p"])]
 				self.metadata[fieldrenamings[tag]] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item"])]
-
-				'''
-				Have modded the "gettext" method so it will optionally take a list of elements to strip. 
-				Not sure if that approach is preferable here, or if collecting <p> & <list><item> tags 
-				in separate instances of "Arrangement" is better approach. Latter is *closer* to keeping formating....
-				I could also mod gettext so that <p> tags manifest as having a linebreak after them....
-				Hah, this is kinda disgusting, but it actually now takes newline & ignore lists...
-				Seems to be better than the approach below:
-				self.metadata['Arrangement'] = []
-				for i in element.findall('{0}list/{0}item'.format(namespace)):
-					self.metadata['Arrangement'].append(gettext(i))
-				for i in element.findall('{0}p'.format(namespace)):
-					self.metadata['Arrangement'].append(gettext(i))
-				'''
 			if tag == "bibliography":
 				self.metadata[fieldrenamings[tag]] = []
 				for i in element.findall('{0}bibref'.format(namespace)):
@@ -116,7 +85,8 @@ class Component(object):
 				href = element.get('{http://www.w3.org/1999/xlink}href')
 				self.metadata[fieldrenamings[tag]].append(gettext(element) + ": " + href)
 			if tag == 'did':
-				didmd = procdid(element)
+				## TODO 20130204: Need to update this to deal with origentities...
+				didmd = procdid(element)[0]
 				#print "Monkey" + str(didmd)
 				self.metadata.update(didmd)
 			if tag == "relatedmaterial":
@@ -126,7 +96,6 @@ class Component(object):
 				else:
 					href = ""
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"extref"]) + " " + href)
-				#root.xpath("//article[@type='news']")
 			if tag == 'scopecontent':
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
 			if tag == 'separatedmaterial':
@@ -143,17 +112,14 @@ class Component(object):
 		"""Sends SOLR Updates based on current schema"""
 		s = sunburnt.SolrInterface('http://localhost:8983/solr')
 		record = {}
-		#recstring = ''
 		for sf in solrfields.itervalues():
 			if sf != 'TODO':
 				record[sf] = []
+
 		for k, v in self.metadata.iteritems():
-			#if k == "arch:perscreator": 
 			if solrfields[k] != 'TODO':
-				#print type(solrfields[k])
 				for val in v: 
 					if len(val) > 0: record[solrfields[k]].append(val)
-					#else: record[solrfields[k]] = val
 		authors = self.metadata['arch:corpcreator'] + self.metadata['arch:perscreator']
 		if len(authors) > 0: record['author_display'] = "; ".join(authors)
 		record['title_display'] = self.metadata['dct:title']
@@ -165,35 +131,10 @@ class Component(object):
 			if len(v) == 0:
 				del record[k]
 
-
-		#print record
-		#for k, v in record.iteritems():
-		#	print "{0}: {1}".format(k, v)
 		s.add(record)
 		s.commit()
-		#s.commit()
-		#print record
 		for c in self.components:
 			c.makeSolr()
-		'''
-		import solr
-
-		# create a connection to a solr server
-		s = solr.SolrConnection('http://example.org:8083/solr')
-
-		# add a document to the index
-		doc = dict(
-		    id=1,
-		    title='Lucene in Action',
-		    author=['Erik Hatcher', 'Otis Gospodnetic'],
-		    )
-		s.add(doc, commit=True)
-
-		# do a search
-		response = s.query('title:lucene')
-		for hit in response.results:
-		    print hit['title']
-    	'''
 
 	def makeGraph(self):
 		"""Generates an internal RDF Graph of the Component Object"""

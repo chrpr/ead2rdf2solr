@@ -28,7 +28,7 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
     if count <= stop:
         #this is for smaller tests. 
         #uncomment the count+=1 to limit processing.
-        #count += 1
+        count += 1
         #print f
         #innerli = []
         #print "current file is: " + infile
@@ -47,15 +47,15 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
 
             if key not in entitySet:
                 entitySet[key] = e
-                print key + " added to entitySet."
+                #print key + " added to entitySet."
             else:
-                print "You already have a " + key
+                #print "You already have a " + key
                 if e.collections[0] not in entitySet[key].collections: 
                     entitySet[key].collections.extend(e.collections)
                 if e.headings[0] not in entitySet[key].headings: 
                     entitySet[key].headings.extend(e.headings)
-            print entitySet[key].collections
-            print entitySet[key].headings
+            #print entitySet[key].collections
+            #print entitySet[key].headings
         #print f
         #if f == "ALBA.PHOTO.015-ead.xml":
         #print 'Title: {0}; ID: {1}; Access Restrictions: {2}'.format(ead.title.encode('utf-8'), ead.identifier.encode('utf-8'), ead.restrictions.encode('utf-8'))
@@ -80,19 +80,20 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
         #printComponents(ead.components)
         #ead.output()
         #ead.fourstore()
-        #ead.makeSolr()
+        ead.makeSolr()
         time = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
         print  'EndTime: {0}: {1}'.format(f, time)
 
 for label, entity in entitySet.iteritems():
+    entity.makeSolr()
     print label
     #print catext.encode('utf-8')
-    for k, v, in entity.metadata.iteritems():
+    #for k, v, in entity.metadata.iteritems():
         #print k + " is a " + type(v)
         #if type(v) == "str":
-        print "{0}: {1}".format(k, v)
-    print "Collections: " + "; ".join(entity.collections).encode('utf-8')
-    print "Headings: " + "; ".join(entity.headings).encode('utf-8')
+        #print "{0}: {1}".format(k, v)
+    #print "Collections: " + "; ".join(entity.collections).encode('utf-8')
+    #print "Headings: " + "; ".join(entity.headings).encode('utf-8')
 
 
 scriptend = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())

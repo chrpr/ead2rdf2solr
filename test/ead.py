@@ -28,16 +28,8 @@ class Ead(object):
 
 	def __init__(self, ead, fn):
 		"""Generates an EAD object from ElementTree-parsed EAD file; fn to set ID if no eadid element"""
-		''' TODO: Get these via xpaths, or by looping. Maybe a combination of each?'''
-		#print fn
 		namespace = "{urn:isbn:1-931666-22-9}"
-		'''
-		Refactoring this to use lxml...
-		Play with:
-		>>> r = doc.xpath('/t:foo/b:bar',
-...               namespaces={'t': 'http://codespeak.net/ns/test1',
-...                           'b': 'http://codespeak.net/ns/test2'})
-		'''
+
 		self.metadata = {
 			'arch:aat': [],	'arch:aatsub': [], 'arch:arrange': [], 'arch:bibref': [], 'arch:bioghist': [],
 			'arch:family': [], 'arch:fast': [], 'arch:lccorpname': [], 'arch:lcgenre': [], 'arch:lcgeo': [], 
@@ -51,27 +43,10 @@ class Ead(object):
 		self.entities = []
 		self.headinglist = []
 		self.headrootlist = []
-		# currently self.components is only *immediate* children, not ancestors. Components will have components will have components, though....
 		self.components = []
-		#self.metadata["File Name"] = fn
-		#print ead.getroot()
-		#print ead.getroot().find('{urn:isbn:1-931666-22-9}eadheader/{urn:isbn:1-931666-22-9}eadid')
-		#for child in ead.getroot():
-		#	print child.tag
-		#self.identifier = gettext(ead.find(n + 'eadheader/' + n + 'eadid'))
 
-		#First, get identifier
-		#_id = ead.find('{0}eadheader/{0}eadid'.format(namespace))
-		# okay, so after installing lxml and switching over, it actually makes very little difference.
-		# Will leave lxml as my tool of choice, but keep using the findall & find methods for compatability with ElementTree...
 		_id = ead.xpath('n:eadheader/n:eadid', namespaces={'n': 'urn:isbn:1-931666-22-9'})
-		#print len(_id)
-		#print gettext(_id)
 		self.metadata['dc:identifier'] = [gettext(_id[0]) if gettext(_id[0]) != "" else fn.replace("-ead.xml", "").replace(".", "_").lower()]
-		#print self.metadata['Identifier']
-
-		#Now, start iteration...
-		#So, I feel like there's gotta be a better way to do this. Dict of named functions? Lamdas??
 		archdesc = ead.find('{0}archdesc'.format(namespace))
 		self.metadata['dc:type'] = [archdesc.get("level")]
 		self.metadata['dct:title'] = [gettext(ead.find('{0}archdesc/{0}did/{0}unittitle'.format(namespace)))]
@@ -79,38 +54,18 @@ class Ead(object):
 
 		for element in archdesc:
 			tag = element.tag.replace(namespace, '')
-			#if tag == "did"
-
 			if tag == "accessrestrict":
 				self.metadata[fieldrenamings[tag]] = []
 				for i in element.findall('{0}p'.format(namespace)):
 					self.metadata[fieldrenamings[tag]].append(gettext(i))
 			if tag == "arrangement":
-				#self.metadata['Arrangement'] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"p"])]
 				self.metadata[fieldrenamings[tag]] = [gettext(element, ignore=[namespace+"head"], newline=[namespace+"item"])]
-
-				'''
-				Have modded the "gettext" method so it will optionally take a list of elements to strip. 
-				Not sure if that approach is preferable here, or if collecting <p> & <list><item> tags 
-				in separate instances of "Arrangement" is better approach. Latter is *closer* to keeping formating....
-				I could also mod gettext so that <p> tags manifest as having a linebreak after them....
-				Hah, this is kinda disgusting, but it actually now takes newline & ignore lists...
-				Seems to be better than the approach below:
-				self.metadata['Arrangement'] = []
-				for i in element.findall('{0}list/{0}item'.format(namespace)):
-					self.metadata['Arrangement'].append(gettext(i))
-				for i in element.findall('{0}p'.format(namespace)):
-					self.metadata['Arrangement'].append(gettext(i))
-				'''
 			if tag == "bibliography":
 				self.metadata[fieldrenamings[tag]] = []
 				for i in element.findall('{0}bibref'.format(namespace)):
 					self.metadata[fieldrenamings[tag]].append(gettext(i, ignore=[namespace+"head"]))
 			if tag == "bioghist":
 				self.metadata[fieldrenamings[tag]].append(gettext(element))
-			#TODO: This is one piece of entity processing....
-			#Ouch. The other is in "utils.py" under origination in did processing...
-			#Either way, she needs re-working...
 			if tag == "controlaccess":
 				for ca in element:
 					t = ca.tag.replace(namespace, '')
@@ -121,7 +76,6 @@ class Ead(object):
 					if hasattr(entity, 'metadata'):
 						entity.collections.append(self.metadata["dc:identifier"][0])
 						self.entities.append(entity)
-					print gettext(ca).encode('utf-8')
 					text = re.sub(r' \|[A-Za-z] ', ' -- ', gettext(ca))
 					##TODO: 20130202: Do I really want to limit this to lcsh?
 					if s == 'lcsh':
@@ -136,7 +90,10 @@ class Ead(object):
 				self.metadata[fieldrenamings[tag]].append(gettext(element) + ": " + href)
 			if tag == 'did':
 				didmd, origentities = procdid(element)
-				#print "Monkey" + str(didmd)
+				for e in origentities:
+						if hasattr(e, 'metadata'):
+							e.collections.append(self.metadata["dc:identifier"][0])
+							self.entities.append(e)
 				self.metadata.update(didmd)
 			if tag == "relatedmaterial":
 				if element.xpath('//n:extref', namespaces={'n': 'urn:isbn:1-931666-22-9'}): 
@@ -145,119 +102,56 @@ class Ead(object):
 				else:
 					href = ""
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"], newline=[namespace+"item", namespace+"extref"]) + " " + href)
-				#root.xpath("//article[@type='news']")
 			if tag == 'scopecontent':
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
 			if tag == 'separatedmaterial':
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
 			if tag == 'userestrict':
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
-
-			#20130202: commenting out components processing for a bit
-			'''
+			
 			if tag == 'dsc':
 				for c in element:
 					component = Component(c, self)
 					# TODO Add this to field renamings!
 					self.metadata['arch:hasComponent'].append(component.metadata['dc:identifier'][0])
 					self.components.append(component)
-			'''
+			
 
 	def makeSolr(self):
 		"""Sends SOLR Updates based on current schema"""
 		s = sunburnt.SolrInterface('http://localhost:8983/solr')
 		record = {}
-		#recstring = ''
 		for sf in solrfields.itervalues():
 			if sf != 'TODO':
 				#Initiate all arrays:
 				record[sf] = []
-				'''
-				This block also no longer needed (20121220):
-				if type(sf) == list:
-					for f in sf: record[f]  = []
-				if type(sf) == str: record[sf] = []
-				'''
+
 		for k, v in self.metadata.iteritems():
 			#if k == "arch:perscreator": 
 			if solrfields[k] != 'TODO':
-				#print type(solrfields[k])
 				for val in v: 
-					if len(val) > 0: record[solrfields[k]].append(val)
-					#else: record[solrfields[k]] = val
+					if len(val) > 0: 
+						if k == "arch:hasComponent": record[solrfields[k]].append("http://localhost:3000/catalog/" + val)
+						else: record[solrfields[k]].append(val)
+		record['entities_display'] = []
+		for entity in self.entities:
+			#print entity.metadata["id"]
+			record['entities_display'].append(u'http://localhost:3000/catalog/' + entity.metadata['id'])
 		authors = self.metadata['arch:corpcreator'] + self.metadata['arch:perscreator']
 		if len(authors) > 0: record['author_display'] = "; ".join(authors)
 		record['title_display'] = self.metadata['dct:title']
-		record['type_facet'] = "Archival Finding Aid"
+		record['type_facet'] = 'Archival Finding Aid'
+
 		#if this finds dupes, try the next version:
 		#if len(self.metadata['dct:title']) > 0: record['title_display'] = self.metadata['dct:title'].join("; ")
 		for k, v in record.items():
 			if len(v) == 0:
 				del record[k]
-			'''
-			update 20121220: redoing this chunk of code....
-			The only "list based" mappings in the whole thing were:
-				'dct:title': ['title_display', 'title_t'],
-				'arch:corpcreator': ['author_display', 'author_t'],
-				'arch:perscreator': ['author_display', 'author_t'],
-			So, instead of the having lists, let's just treat author_display & title_display as special cases....	
-			
-			Okay, Got's a lot of problems here:
-			Notably, author_display is *not* multi-val in blacklight's solr. 
-			So, I either need to *make* it multi-val & prob break the app logic...
-			or I need to combine them or only take one....
-		
-			#This, I can get rid of...
-			if k == 'arch:perscreator' or k == 'arch:corpcreator': 
-				#print "pre: " + str(v)
-				v = ["; ".join(v)]
-				#print "post: "+ str(v)
-			#This is temporary, holding while I finish mappings.
-			if solrfields[k] != 'TODO':
-				#print type(solrfields[k])
-				for val in v: 
-					if type(solrfields[k]) == list:
-						for f in solrfields[k]:
-							#print f
-							#print record[f]
-							#Why the fuck do I have this if len(record[f]) == 0? 
-							# Isn't that basically saying only write the value if it hasn't already been written?
-							# Ah, right, it's because my only list versions are display fields. 
-							#Let's actually wipe that whole thing...
-							if len(record[f]) == 0: record[f].append(val)
-							#else: record[f] = val
-					else: 
-						if len(val) >= 1: record[solrfields[k]].append(val)
-						#else: record[solrfields[k]] = val
-		#print record
-		'''
-		#for k, v in record.iteritems():
-		#	print "{0}: {1}".format(k, v)
 		s.add(record)
 		s.commit()
-		#s.commit()
-		#print record
 		for c in self.components:
+			print c.metadata["dc:identifier"]
 			c.makeSolr()
-		'''
-		import solr
-
-		# create a connection to a solr server
-		s = solr.SolrConnection('http://example.org:8083/solr')
-
-		# add a document to the index
-		doc = dict(
-		    id=1,
-		    title='Lucene in Action',
-		    author=['Erik Hatcher', 'Otis Gospodnetic'],
-		    )
-		s.add(doc, commit=True)
-
-		# do a search
-		response = s.query('title:lucene')
-		for hit in response.results:
-		    print hit['title']
-    	'''
 
 	def makeGraph(self):
 		"""Generates an internal RDF Graph of the EAD Object"""

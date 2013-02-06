@@ -1,8 +1,12 @@
 import re
 import codecs
+import sunburnt
 from configs import *
 from utils import *
 from types import *
+
+monkey = codecs.open('monkey.txt', 'a', encoding='utf-8')
+
 
 if analyze == True:
 	heads = codecs.open('headstrings2.txt', 'a', encoding='utf-8')
@@ -81,16 +85,16 @@ class Entity(object):
 					self.label = re.sub('[0-9]{4}-', '', self.label)
 			 
 				if re.search('(\(.*\))', self.label):
-					self.metadata['fullname'] = re.sub('(,.*\()', ', ', self.label).rstrip('), .').encode('utf-8')
+					self.metadata['fullname'] = re.sub('(,.*\()', ', ', self.label).rstrip('), .')
 					self.label = re.sub('(\(.*\))', '', self.label)
 				#Strip periods that aren't following middle initials:
 				self.label = re.sub('(?<! [A-Z])\.', '', self.label)
 				#Strip trailing right whitespace and commas:
-				self.metadata["heading"] = catext.encode('utf-8')
-				self.metadata["label"] = self.label.rstrip(', ').encode('utf-8')
-				self.metadata["id"] = self.label.rstrip(', ').replace(' ', '_').encode('utf-8')
-				self.metadata["lookup"] = [self.metadata["label"]]
-				if "fullname" in self.metadata: self.metadata["lookup"].append(self.metadata["fullname"])
+				self.metadata['heading'] = catext
+				self.metadata['label'] = self.label.rstrip(', ')
+				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').replace(".,'", '')
+				self.metadata['lookup'] = [self.metadata['label']]
+				if 'fullname' in self.metadata: self.metadata["lookup"].append(self.metadata["fullname"])
 
 			if type == "corpname":
 				self.metadata['type'] = "corporation"
@@ -113,8 +117,8 @@ class Entity(object):
 						if 'topicfacet' not in self.metadata: self.metadata['topicfacet'] = [v.replace('(', '').rstrip(" :).")]
 						else: self.metadata['topicfacet'].append(v.replace('(', '').rstrip(" :)."))
 						if self.label not in self.metadata["lookup"]: self.metadata["lookup"].append(self.label)
-				self.metadata['label'] = self.label.rstrip(', ').encode('utf-8')
-				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').encode('utf-8')
+				self.metadata['label'] = self.label.rstrip(', ')
+				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').replace('.', '')
 				'''
 				Alright, this next block's a little weird:
 				First off, I need to generalize it so there's a list in configs.py that is maybe relevant to your data patterns.
@@ -124,15 +128,15 @@ class Entity(object):
 				'''
 				if re.search('(\(.*\))', self.label):
 					noparens = re.sub('(\(.*\) )', '', self.label)
-					self.metadata['lookup'].append(noparens.encode('utf-8'))
+					self.metadata['lookup'].append(noparens)
 					if "New York, N.Y." in noparens:
-						self.metadata['lookup'].append(re.sub('New York, N.Y.', '', noparens).rstrip(", ").encode('utf-8'))
+						self.metadata['lookup'].append(re.sub('New York, N.Y.', '', noparens).rstrip(", "))
 					if "N.Y." in noparens:
-						self.metadata['lookup'].append(re.sub('N.Y.', '', noparens).rstrip(", ").encode('utf-8'))
+						self.metadata['lookup'].append(re.sub('N.Y.', '', noparens).rstrip(", "))
 				if "New York, N.Y." in self.label:
-					self.metadata['lookup'].append(re.sub('New York, N.Y.', '', self.label).rstrip(", ").encode('utf-8'))
+					self.metadata['lookup'].append(re.sub('New York, N.Y.', '', self.label).rstrip(", "))
 				if "N.Y." in self.label:
-					self.metadata['lookup'].append(re.sub('N.Y.', '', self.label).rstrip(", ").encode('utf-8'))
+					self.metadata['lookup'].append(re.sub('N.Y.', '', self.label).rstrip(", "))
 
 			if type == "subject":
 				self.metadata['type'] = "topic"
@@ -151,7 +155,7 @@ class Entity(object):
 						if  re.search('([^0-9-.])', v) and 'century' not in v:
 							self.label += " " + v.replace('()','').rstrip(' .')
 							self.metadata['lookup'].append(self.label)
-							self.metadata['lookup'].append(v)							
+							self.metadata['lookup'].append(v)						
 					if k == 'z':
 						if 'geofacet' not in self.metadata: self.metadata['geofacet'] = [v.replace('()', '').rstrip(" :).")]
 						else: self.metadata['geofacet'].append(v.replace('()', '').rstrip(" :)."))
@@ -162,8 +166,8 @@ class Entity(object):
 							self.label += " " + v
 							self.metadata['lookup'].append(self.label + v)
 							self.metadata['lookup'].append(v)
-				self.metadata['label'] = self.label.rstrip(', ').encode('utf-8')
-				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').encode('utf-8')
+				self.metadata['label'] = self.label.rstrip(', ')
+				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').replace('.', '')
 
 			if type == "geogname":
 				self.metadata['type'] = "place"
@@ -192,19 +196,21 @@ class Entity(object):
 							self.label += " " + v
 							self.metadata['lookup'].append(self.label)
 							self.metadata['lookup'].append(v)
-				self.metadata['label'] = self.label.rstrip(', ').encode('utf-8')
-				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').encode('utf-8')
+				self.metadata['label'] = self.label.rstrip(', ')
+				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').replace('.', '')
 			
 			#printing out all the metadatas to screen.
 			#if 'type' in self.metadata and self.metadata['type'] == "place":
 			#TODO: THIS GOES AWAY SOON
-			'''
-			print catext.encode('utf-8')
-			for k, v, in self.metadata.iteritems():
+			
+			#print catext.encode('utf-8')
+			#for k, v, in self.metadata.iteritems():
 				#print k + " is a " + type(v)
 				#if type(v) == "str":
-				print "{0}: {1}".format(k, v)
-			'''
+				#print "{0}: {1}".format(k, v).encode('utf-8')
+				#monkey.write("{0}: {1}".format(k, v).encode('utf-8'))
+				#print k
+				#print v
 
 			if analyze == True: 
 				self.root = root.rstrip()
@@ -221,5 +227,56 @@ class Entity(object):
 				if type == "subject":
 					top.write(catext + "\n")
 
+	def makeSolr(self):
+		"""Sends SOLR Updates based on current schema"""
+		s = sunburnt.SolrInterface('http://localhost:8983/solr')
+		record = {}
+		record['id'] = self.metadata['id']
+		record['title_display'] = self.metadata['label']
+		record['title_t'] = self.metadata['label']
+		record['format'] = self.metadata['type']
+		record['title_alt_display'] = []
+		record['alttitle_t'] = []
+		record['indexer_t'] = []
+		record['collections_display'] = []
+		record['headings_display'] = []
+		record['subject_topic_facet'] = []
+		record['subject_geo_facet'] = []
+		record['subject_era_facet'] = []
 
+		if 'fullname' in self.metadata: 
+			record['title_alt_display'].append(self.metadata['fullname'])
+			record['alttitle_t'].append(self.metadata['fullname'])
+		if 'heading' in self.metadata: 
+			record['title_alt_display'].append(self.metadata['heading'])
+			record['alttitle_t'].append(self.metadata['heading'])
 
+		if 'bdate' in self.metadata: record['indexer_t'].append(self.metadata['bdate'])
+		if 'ddate' in self.metadata: record['indexer_t'].append(self.metadata['ddate'])
+		
+		for lookup in self.metadata['lookup']:
+			record['indexer_t'].append(lookup)
+		
+		if 'topic' in self.metadata:
+			for topic in self.metadata['topicfacet']:
+				record['subject_topic_facet'].append(topic)
+		if 'geo' in self.metadata: 
+			for geo in self.metadata['geofacet']:
+				record['subject_geo_facet'].append(geo)
+		if 'temporal' in self.metadata:
+			for temporal in self.metadata['tempfacet']:
+				record['subject_era_facet'].append(temporal)
+
+		for collection in self.collections:
+			record['collections_display'].append("http://localhost:3000/catalog/" + collection)
+		for heading in self.headings:
+			record['headings_display'].append(heading)
+
+		#ugh, so there's gotta be a better way...
+		#Since I initialized all these fields, I have to kill empties
+		for k, v in record.items():
+			if len(v) == 0:
+				del record[k]
+
+		s.add(record)
+		s.commit()
