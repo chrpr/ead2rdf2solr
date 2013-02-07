@@ -44,15 +44,21 @@ class Component(object):
 		self.metadata['dc:type'] = [xfrag.get("level")]
 		self.metadata['dct:title'] = [gettext(xfrag.find('{0}did/{0}unittitle'.format(namespace)))]
 		self.metadata['arch:findingaid'] = [eadob.metadata['arch:findingaid'][0]]
-		self.metadata['arch:inCollection'] = [eadob.metadata['dc:identifier'][0], eadob.metadata['dct:title'][0]]
+		self.metadata['arch:inCollection'] = [eadob.metadata['dc:identifier'][0]]
+		#Redoing this is a straight link, no title...
+		#self.metadata['arch:inCollection'] = [eadob.metadata['dc:identifier'][0], eadob.metadata['dct:title'][0]]
+
 		#self.metadata['arch:inCollection'] = [eadob.metadata['dc:identifier'][0], eadob.metadata['dct:title'][0]]
 		#don't want titles in these , right? Wait... These should all be ids, but then I'll... Ugh. Pain in ass! Monkey-fucker!
 		#Actually, it's okay, because above example "inCollection" is actually 2 elements, not an element with 2 values...
 		#Works for unique elements like these (inColleciton, hasParent), but *not* for repeatables like arch:hasComponent
 		#TODO: 20130205: Can this shizzle be made a linkeylink?
 
+		#Okay, so this guy is actually just the direct parent if that's passed (for sub-objects...)
 		if args:
-			self.metadata['arch:hasParent'] = [args[0].metadata['dc:identifier'][0], args[0].metadata['dct:title'][0]]
+			self.metadata['arch:hasParent'] = [args[0].metadata['dc:identifier'][0]]
+			#So, as above, I'm dropping the title portion so that they can be linked.
+			#self.metadata['arch:hasParent'] = [args[0].metadata['dc:identifier'][0], args[0].metadata['dct:title'][0]]
 
 
 		for element in xfrag:
@@ -119,7 +125,11 @@ class Component(object):
 		for k, v in self.metadata.iteritems():
 			if solrfields[k] != 'TODO':
 				for val in v: 
-					if len(val) > 0: record[solrfields[k]].append(val)
+					if len(val) > 0: 
+						if k == "arch:hasComponent": record[solrfields[k]].append("http://localhost:3000/catalog/" + val)
+						elif k == "arch:hasParent": record[solrfields[k]].append("http://localhost:3000/catalog/" + val)
+						elif k == "arch:inCollection": record[solrfields[k]].append("http://localhost:3000/catalog/" + val)						
+						else: record[solrfields[k]].append(val)
 		authors = self.metadata['arch:corpcreator'] + self.metadata['arch:perscreator']
 		if len(authors) > 0: record['author_display'] = "; ".join(authors)
 		record['title_display'] = self.metadata['dct:title']

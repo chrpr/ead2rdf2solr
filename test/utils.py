@@ -33,7 +33,7 @@ def procdid(xfrag):
 		#print "Tag" + tag
 		if tag == "abstract": md[fieldrenamings[tag]].append(gettext(subelem))
 		if tag == "langmaterial":
-			md[fieldrenamings[tag]].append(gettext(subelem))
+			md[fieldrenamings[tag]].append(gettext(subelem).rstrip())
 			for subsub in subelem:
 				if subsub.tag.replace(namespace, '') == 'language':
 					md['dc:language'].append(subsub.get('langcode'))

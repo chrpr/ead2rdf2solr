@@ -5,8 +5,9 @@ from configs import *
 from utils import *
 from types import *
 
-monkey = codecs.open('monkey.txt', 'a', encoding='utf-8')
+#monkey = codecs.open('monkey.txt', 'a', encoding='utf-8')
 
+#lookups = codecs.open('lookups.txt', 'a', encoding='utf-8')
 
 if analyze == True:
 	heads = codecs.open('headstrings2.txt', 'a', encoding='utf-8')
@@ -198,7 +199,8 @@ class Entity(object):
 							self.metadata['lookup'].append(v)
 				self.metadata['label'] = self.label.rstrip(', ')
 				self.metadata['id'] = self.label.rstrip(', ').replace(' ', '_').replace('.', '')
-			
+				if "(Spain)" in self.label:
+					self.metadata['lookup'].append(re.sub('\(Spain\)', '', self.label).rstrip(", "))
 			#printing out all the metadatas to screen.
 			#if 'type' in self.metadata and self.metadata['type'] == "place":
 			#TODO: THIS GOES AWAY SOON
@@ -212,6 +214,9 @@ class Entity(object):
 				#print k
 				#print v
 
+			#for lookup in self.metadata['lookup']:
+				#lookups.write("{0}|{1}".format(self.metadata['id'].encode('utf-8'), u"WTF"))
+				#lookups.write(self.metadata['id'] + "|" + lookup)
 			if analyze == True: 
 				self.root = root.rstrip()
 				facets.write("root|" + root.rstrip() + "\n")

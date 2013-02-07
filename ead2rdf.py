@@ -7,6 +7,8 @@ import re
 from ead import Ead
 from time import localtime, strftime
 
+lookups = codecs.open('lookups.txt', 'w', encoding='utf-8')
+
 scriptstart = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
 
 def printComponents(components):
@@ -28,7 +30,7 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
     if count <= stop:
         #this is for smaller tests. 
         #uncomment the count+=1 to limit processing.
-        count += 1
+        #count += 1
         #print f
         #innerli = []
         #print "current file is: " + infile
@@ -84,9 +86,13 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
         time = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
         print  'EndTime: {0}: {1}'.format(f, time)
 
-for label, entity in entitySet.iteritems():
+for eid, entity in entitySet.iteritems():
     entity.makeSolr()
-    print label
+    print eid
+    for lookup in entity.metadata['lookup']:
+        lookups.write(eid + '|' + lookup + '\n')
+
+    #    lookups.write('{0}|{1}'.format(eid, lookup.decode('utf-8')))
     #print catext.encode('utf-8')
     #for k, v, in entity.metadata.iteritems():
         #print k + " is a " + type(v)
