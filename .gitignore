@@ -1,5 +1,6 @@
 # Ignore all XML & output text #
 ################################
+test/
 *.txt
 *.xml
 *.xls

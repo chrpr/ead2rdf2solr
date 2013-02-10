@@ -1,4 +1,5 @@
 analyze = False
+components = False
 
 fieldrenamings = {
 	'abstract': 'dct:abstract',

@@ -4,6 +4,7 @@ import glob
 import sys
 import codecs
 import re
+from utils import *
 from ead import Ead
 from time import localtime, strftime
 
@@ -82,15 +83,58 @@ for f in glob.glob( os.path.join(path, '*.xml') ):
         #printComponents(ead.components)
         #ead.output()
         #ead.fourstore()
-        ead.makeSolr()
+        #ead.makeSolr()
         time = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
         print  'EndTime: {0}: {1}'.format(f, time)
+
+fuzzmatch = codecs.open('fuzzmatch.txt', 'r', encoding='utf-8')
+dbmatches = {}
+for line in fuzzmatch:
+    split = line.split('|')
+    ratiodict = {'dbid': split[1], 'dblabel': split[2], 'label': split[3]}
+    if split[0] not in dbmatches:
+        dbmatches[split[0]] = [ratiodict]
+    else:
+        dbmatches[split[0]].append(ratiodict)
 
 for eid, entity in entitySet.iteritems():
     entity.makeSolr()
     print eid
-    for lookup in entity.metadata['lookup']:
-        lookups.write(eid + '|' + lookup + '\n')
+    '''
+    #This block of code moves to makeSolr() for the entity....
+    sameArray = sameAs('http://chrpr.com/data/' + eid.encode('utf-8') + '.rdf')
+    for uri in sameArray:
+        print "  -" + uri.encode('utf-8')
+        abstracts = dbpField(uri.encode('utf-8'), 'http://dbpedia.org/ontology/abstract')
+        for abstract in abstracts:
+            print "      Abstract:" + abstract.encode('utf-8')
+    '''
+    '''
+    if eid in dbmatches:
+        candidates = dbmatches[eid]
+        toprat = 0
+        bestmatch = ""
+        for candidate in candidates:
+            ratio = fuzzer(candidate['label'], candidate['dblabel'])
+            if ratio > toprat:
+                toprat = ratio
+                bestid = candidate['dbid']
+                bestmatch = (eid.encode('utf-8') + "|" + candidate['dbid'].encode('utf-8') + 
+                "|" + candidate['dblabel'].encode('utf-8') + "|" + 
+                candidate['label'].encode('utf-8') + "|" + 
+                str(ratio))
+        #print bestmatch 
+        #print bestid
+        #load4store("dbpedia", bestid)
+        #load4store("relations", [eid, 'owl', 'sameas', bestid])
+        load4store([eid, 'owl', 'sameas', bestid])
+        '''
+
+
+    #entity.makeGraph()
+    #entity.fourstore()
+    #for lookup in entity.metadata['lookup']:
+    #    lookups.write(eid + '|' + lookup + '\n')
 
     #    lookups.write('{0}|{1}'.format(eid, lookup.decode('utf-8')))
     #print catext.encode('utf-8')
@@ -100,6 +144,8 @@ for eid, entity in entitySet.iteritems():
         #print "{0}: {1}".format(k, v)
     #print "Collections: " + "; ".join(entity.collections).encode('utf-8')
     #print "Headings: " + "; ".join(entity.headings).encode('utf-8')
+
+#dbpmatch(entitySet)
 
 
 scriptend = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())

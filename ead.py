@@ -43,7 +43,7 @@ class Ead(object):
 		self.entities = []
 		self.headinglist = []
 		self.headrootlist = []
-		self.components = []
+		if components == True: self.components = []
 
 		_id = ead.xpath('n:eadheader/n:eadid', namespaces={'n': 'urn:isbn:1-931666-22-9'})
 		self.metadata['dc:identifier'] = [gettext(_id[0]) if gettext(_id[0]) != "" else fn.replace("-ead.xml", "").replace(".", "_").lower()]
@@ -109,7 +109,7 @@ class Ead(object):
 			if tag == 'userestrict':
 				self.metadata[fieldrenamings[tag]].append(gettext(element, ignore=[namespace+"head"]))
 			
-			if tag == 'dsc':
+			if tag == 'dsc' and components == True:
 				for c in element:
 					component = Component(c, self)
 					# TODO Add this to field renamings!
@@ -149,9 +149,10 @@ class Ead(object):
 				del record[k]
 		s.add(record)
 		s.commit()
-		for c in self.components:
-			print c.metadata["dc:identifier"]
-			c.makeSolr()
+		if components == True:
+			for c in self.components:
+				print c.metadata["dc:identifier"]
+				c.makeSolr()
 
 	def makeGraph(self):
 		"""Generates an internal RDF Graph of the EAD Object"""
@@ -191,8 +192,9 @@ class Ead(object):
 		of2 = "rdf/" + self.metadata["dc:identifier"][0] + "-long.ttl"
 		self.graph.serialize(format=format, destination = of)
 		#self.graph.serialize(format=format)
-		for c in self.components:
-			c.output()
+		if components == True:
+			for c in self.components:
+				c.output()
 		#full = open(of2, 'w')
 		#full.write(fullturt)
 		#full.close()
@@ -205,6 +207,7 @@ class Ead(object):
 		store = HTTP4Store('http://localhost:8080')
 		#print turtle
 		r =  store.append_graph("http://chrpr.net/data/ead", turtle, "turtle")
-		for c in self.components:
-			c.fourstore()
+		if components == True:
+			for c in self.components:
+				c.fourstore()
 

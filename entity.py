@@ -1,9 +1,12 @@
 import re
 import codecs
 import sunburnt
+import rdflib
 from configs import *
 from utils import *
 from types import *
+from rdflib import Graph, URIRef, Namespace, Literal
+from HTTP4Store import HTTP4Store
 
 #monkey = codecs.open('monkey.txt', 'a', encoding='utf-8')
 
@@ -233,6 +236,7 @@ class Entity(object):
 					top.write(catext + "\n")
 
 	def makeSolr(self):
+		from utils import *
 		"""Sends SOLR Updates based on current schema"""
 		s = sunburnt.SolrInterface('http://localhost:8983/solr')
 		record = {}
@@ -277,6 +281,18 @@ class Entity(object):
 		for heading in self.headings:
 			record['headings_display'].append(heading)
 
+		sameArray = sameAsObj('http://chrpr.com/data/' + self.metadata['id'].encode('utf-8') + '.rdf')
+		record['dbpedia_display'] = []
+		record['abstract_t'] = []
+
+		for uri in sameArray:
+			#print "  -" + uri.encode('utf-8')
+			record['dbpedia_display'].append(uri)
+			abstracts = dbpField(uri.encode('utf-8'), 'http://dbpedia.org/ontology/abstract')
+			for abstract in abstracts:
+				#print "      Abstract:" + abstract.encode('utf-8')
+				record['abstract_t'].append(abstract)
+
 		#ugh, so there's gotta be a better way...
 		#Since I initialized all these fields, I have to kill empties
 		for k, v in record.items():
@@ -285,3 +301,76 @@ class Entity(object):
 
 		s.add(record)
 		s.commit()
+
+	def makeGraph(self):
+		"""Generates an internal RDF Graph of the EAD Object"""
+		''' TODO: Should this be private?
+		Also, currently using Graph rather than ConjunectiveGraph because I want to persist my graph IDs:
+		https://rdflib.readthedocs.org/en/latest/graphs_bnodes.html
+		But it's possible that I want to do establish the identifiers at time of 4store persist or serialization?
+		Otherwise I'm naming this thing each time I graph an EAD instance, which is *not* my goal, no?
+		'''
+		self.graph = rdflib.Graph(identifier="http://chrpr.com/data/entity.rdf")
+		uri = URIRef("http://chrpr.com/data/" + str(self.metadata['id'].encode('utf-8')) + ".rdf")
+		namespaces = {
+			"dc": Namespace("http://purl.org/dc/elements/1.1/"),
+			"dct": Namespace("http://purl.org/dc/terms/"),
+			"arch": Namespace("http://chrpr.com/arch/")
+		}
+		curies = { "dc": "DC", "dct": "DCTERMS", "arch": "ARCH" }
+		self.graph.bind("dc", "http://purl.org/dc/elements/1.1/")
+		self.graph.bind("dct", "http://purl.org/dc/terms/")
+		self.graph.bind("arch", "http://chrpr.com/arch/")
+		'''
+		for k, v, in self.metadata.iteritems():
+			p = namespaces[k.split(":")[0]][k.split(":")[1]]
+			if len(v) > 0:
+				for data in v:
+					self.graph.add([uri, p, Literal(data, lang='en') ])
+		'''
+		self.graph.add([uri, namespaces['dc']['identifier'], Literal(self.metadata['id'], lang='en')])
+		self.graph.add([uri, namespaces['dct']['title'], Literal(self.metadata['label'], lang='en')])
+		self.graph.add([uri, namespaces['dct']['type'], Literal(self.metadata['type'], lang='en')])
+		if 'fullname' in self.metadata: self.graph.add([uri, namespaces['dct']['alternative'], Literal(self.metadata['fullname'], lang='en')])
+		if 'heading' in self.metadata: self.graph.add([uri, namespaces['arch']['heading'], Literal(self.metadata['heading'], lang='en')])
+		if 'bdate' in self.metadata: self.graph.add([uri, namespaces['arch']['bdate'], Literal(self.metadata['bdate'], lang='en')])
+		if 'ddate' in self.metadata: self.graph.add([uri, namespaces['arch']['ddate'], Literal(self.metadata['ddate'], lang='en')])
+		#if 'fullname' in self.metadata: self.graph.add([uri, namespaces['dct']['alternative'], Literal(self.metadata['id'], lang='en')])
+		for lookup in self.metadata['lookup']:
+			self.graph.add([uri, namespaces['arch']['lookup'], Literal(self.metadata['lookup'], lang='en')])
+		if 'topic' in self.metadata:
+			for topic in self.metadata:
+				self.graph.add([uri, namespaces['dct']['subject'], Literal(self.metadata['topic'], lang='en')])
+		if 'geo' in self.metadata:
+			for geo in self.metadata:
+				self.graph.add([uri, namespaces['dct']['spatial'], Literal(self.metadata['geo'], lang='en')])
+		if 'temporal' in self.metadata:
+			for topic in self.metadata:
+				self.graph.add([uri, namespaces['dct']['temporal'], Literal(self.metadata['temporal'], lang='en')])
+		#print self.graph.serialize(format="turtle")
+
+	def output(self, format="turtle"):
+		if not hasattr(self, "graph"):
+			self.makeGraph()
+
+		of = "rdf/" + self.metadata["dc:identifier"][0] + ".ttl"
+		of2 = "rdf/" + self.metadata["dc:identifier"][0] + "-long.ttl"
+		self.graph.serialize(format=format, destination = of)
+		#self.graph.serialize(format=format)
+		if components == True:
+			for c in self.components:
+				c.output()
+		#full = open(of2, 'w')
+		#full.write(fullturt)
+		#full.close()
+	
+
+	def fourstore(self):
+		if not hasattr(self, "graph"):
+			self.makeGraph()
+		turtle = self.graph.serialize(format="turtle")
+		store = HTTP4Store('http://localhost:8080')
+		#print turtle
+		r =  store.append_graph("http://chrpr.net/data/entity", turtle, "turtle")
+
+
