@@ -10,3 +10,4 @@ test/
 *.pyc
 *.ttl
 rdf/
+!tests/fixtures/*.xml

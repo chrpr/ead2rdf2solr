@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dsc xmlns:ns2="http://www.w3.org/1999/xlink" xmlns="urn:isbn:1-931666-22-9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <c id="ref13" level="series">
+        <did>
+            <unittitle>Series I. Personal</unittitle>
+            <unitdate>1964-2001</unitdate>
+        </did>
+        <c id="ref18" level="file">
+            <did>
+                <unittitle>Black and Tan Massacre</unittitle>
+                <container id="cid19104001" type="Box" label="Mixed materials (31142050296170)">1</container>
+                <container parent="cid19104001" type="Folder">1</container>
+                <unitdate normal="1985/1985">Mar 4, 1985</unitdate>
+            </did>
+        </c>
+        <c id="ref19" level="file">
+            <did>
+                <unittitle>Certificates, Honorariums, Awards and Recognitions, Tribute</unittitle>
+                <container id="cid19104002" type="Box" label="Mixed materials (31142050296170)">1</container>
+                <container parent="cid19104002" type="Folder">2</container>
+                <unitdate normal="1964/1994" type="inclusive">1964-1994, undated</unitdate>
+            </did>
+        </c>
+	</c>
+</dsc>
