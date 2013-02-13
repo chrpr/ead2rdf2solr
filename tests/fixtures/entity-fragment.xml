@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<controlaccess xmlns:ns2="http://www.w3.org/1999/xlink" xmlns="urn:isbn:1-931666-22-9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <persname source="naf">Clinton, Bill, 1946-</persname>
+    <persname source="naf">Cox, Thomas J., 1906-</persname>
+    <persname rules="dacs" source="local">Durkan, Frank, 1930-2006</persname>
+    <corpname source="local">International Brotherhood of Teamsters. Local 807 (New York, N.Y.) .</corpname>
+    <corpname source="naf">International Brotherhood of Teamsters.</corpname>
+    <corpname rules="dacs" source="naf">Irish Northern Aid Committee.</corpname>
+    <corpname source="naf">Irish Republican Army.</corpname>
+    <persname source="naf">McAliskey, Bernadette Devlin, 1947- </persname>
+    <persname source="naf">O'Dwyer, Paul, 1907-</persname>
+    <corpname source="naf">Republican Sinn Féin.</corpname>
+    <corpname rules="aacr" source="naf">Sinn Fein.</corpname>
+    <corpname source="naf">Veterans of the Abraham Lincoln Brigade.</corpname>
+    <subject source="lcsh">Anti-communist movements |z United States.</subject>
+    <genreform source="aat">Black-and-white photographs.</genreform>
+    <genreform source="aat">Buttons (information artifacts).</genreform>
+    <genreform source="aat">Clippings (information artifacts).</genreform>
+    <genreform source="aat">Color photographs.</genreform>
+    <genreform source="aat">Correspondence.</genreform>
+    <genreform source="aat">Fliers (printed matter)</genreform>
+    <subject source="lcsh">Human rights activists.</subject>
+    <subject source="lcsh">Human rights.</subject>
+    <subject source="lcsh">Hunger strikes |z Northern Ireland.</subject>
+    <subject source="lcsh">Irish Americans |z New York (State) |z New York |x Political activities.</subject>
+    <genreform source="aat">Newsletters.</genreform>
+    <genreform source="aat">Pamphlets.</genreform>
+    <subject source="lcsh">Political campaigns |z New York (State) |z New York.</subject>
+    <subject source="lcsh">Political campaigns.</subject>
+    <genreform source="aat">T-shirts.</genreform>
+    <subject source="lcsh">Trials (Political crimes and offenses) |z United States.</subject>
+</controlaccess>

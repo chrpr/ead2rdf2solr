@@ -35,3 +35,18 @@ variety of transformations. Among the first issues I want to tackle
 is getting this into an argument driven format, rather than the
 commenting out various chunks for running different sub-processes.
 
+PyPi Dependencies
+--------------------
+(pip install $LIB)
+lxml 
+rdflib
+sunburnt
+HTTP4Store
+nltk
+fuzzywuzzy
+
+Running Tests
+----------------
+
+python -m unittest discover
+
