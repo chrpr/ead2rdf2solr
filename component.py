@@ -114,9 +114,7 @@ class Component(object):
 					self.metadata['arch:hasComponent'].append(component.metadata['dc:identifier'][0])
 					self.components.append(component)
 
-	def makeSolr(self):
-		"""Sends SOLR Updates based on current schema"""
-		s = sunburnt.SolrInterface('http://localhost:8983/solr')
+	def __solrRecord__(self):
 		record = {}
 		for sf in solrfields.itervalues():
 			if sf != 'TODO':
@@ -141,6 +139,12 @@ class Component(object):
 			if len(v) == 0:
 				del record[k]
 
+		return record
+
+	def makeSolr(self):
+		"""Sends SOLR Updates based on current schema"""
+		s = sunburnt.SolrInterface('http://localhost:8983/solr')
+		record = self.__solrRecord__()
 		s.add(record)
 		s.commit()
 		for c in self.components:
