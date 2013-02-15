@@ -2,6 +2,8 @@ import unittest
 from lxml import etree
 from ead import Ead
 import configs
+from rdflib.compare import graph_diff
+from rdflib import Graph
 
 class EadTestCase(unittest.TestCase):
 
@@ -99,6 +101,21 @@ class EadTestCase(unittest.TestCase):
 			self.assertTrue(len(self.ead.components) > 0)
 		else:
 			self.assertFalse('components' in self.ead.__dict__)
+
+	def test_graph(self):
+		self.ead.makeGraph()
+		actual = self.ead.graph
+		expected = Graph(identifier="http://chrpr.com/data/ead.rdf")
+		(in_both, in_first, in_second) = graph_diff(expected, actual)
+		for triple in in_first:
+			pass
+			#print "in_first: " + str(triple)
+		for triple in in_second:
+			pass
+			#print "in_second: " + str(triple)
+		#self.assertEqual(actual, expected)
+		#self.assertEqual(len(in_first), 0)
+		#self.assertEqual(len(in_second), 0)
 
 if __name__ == '__main__':
 	unittest.main()

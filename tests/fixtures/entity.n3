@@ -1,0 +1,15 @@
+@prefix dce: <http://purl.org/dc/elements/1.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix arch: <http://chrpr.com/arch/> .
+	<http://chrpr.com/data/Clinton,_Bill.rdf> dce:identifier
+		"Clinton,_Bill"@en .
+	<http://chrpr.com/data/Clinton,_Bill.rdf> dct:title
+		"Clinton, Bill"@en .
+	<http://chrpr.com/data/Clinton,_Bill.rdf> dct:type
+		"person"@en .
+	<http://chrpr.com/data/Clinton,_Bill.rdf> arch:heading
+		"Clinton, Bill, 1946-"@en .
+	<http://chrpr.com/data/Clinton,_Bill.rdf> arch:lookup
+		"['Clinton, Bill']"@en .
+	<http://chrpr.com/data/Clinton,_Bill.rdf> arch:bdate
+		"1946"@en .
