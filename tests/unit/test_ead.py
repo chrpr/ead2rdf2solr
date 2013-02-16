@@ -106,16 +106,16 @@ class EadTestCase(unittest.TestCase):
 		self.ead.makeGraph()
 		actual = self.ead.graph
 		expected = Graph(identifier="http://chrpr.com/data/ead.rdf")
+		with open("tests/fixtures/ead.n3", 'r') as f:
+			expected.parse(format='n3', data=f.read())
 		(in_both, in_first, in_second) = graph_diff(expected, actual)
 		for triple in in_first:
-			pass
-			#print "in_first: " + str(triple)
+			print "in_first: " + str(triple)
 		for triple in in_second:
-			pass
-			#print "in_second: " + str(triple)
-		#self.assertEqual(actual, expected)
-		#self.assertEqual(len(in_first), 0)
-		#self.assertEqual(len(in_second), 0)
+			print "in_second: " + str(triple)
+		self.assertEqual(actual, expected)
+		self.assertEqual(len(in_first), 0)
+		self.assertEqual(len(in_second), 0)
 
 if __name__ == '__main__':
 	unittest.main()
