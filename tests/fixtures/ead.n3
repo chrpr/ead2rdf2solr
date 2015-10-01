@@ -1,0 +1,140 @@
+@prefix dce: <http://purl.org/dc/elements/1.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix arch: <http://chrpr.com/arch/> .
+	<http://chrpr.com/data/aia_009.rdf> dce:identifier
+		"aia_009"@en .
+	<http://chrpr.com/data/aia_009.rdf> dce:language
+		"eng"@en .
+	<http://chrpr.com/data/aia_009.rdf> dce:date
+		"1925-2003 (bulk 1970-2000)"@en .
+	<http://chrpr.com/data/aia_009.rdf> dct:title
+		"George Harrison Papers"@en .
+	<http://chrpr.com/data/aia_009.rdf> dct:abstract
+		"George Harrison (1915-2004) was a socialist and revolutionary Irish republican who spent his life supporting the causes of oppressed peoples around the globe. This collection includes materials from many organizations in which Harrison was active during the period 1970-1995, especially the Irish American Defense Fund, the Irish Republican Socialist Committee of North America, the National Graves Association, and Republican Sinn Fein. It also reflects his interests in liberation movements in South Africa, Cuba, Latin America, Palestine and the Philippines, particularly through a collection of political buttons. NOTE: This collection is stored offsite, and advance notice is required for use."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:restrict
+		"Open for research without restrictions. NOTE: This collection is stored offsite, and advance notice is required for use."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:restrict
+		" Permission to publish materials must be obtained in writing from the: Archives of Irish America/Tamiment Library Elmer Holmes Bobst Library 70 Washington Square South New York, NY 10012 Phone: (212) 998-2630 Fax: (212) 995-4225 E-mail: irisharchives@library.nyu.edu "@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:localcorp
+		"International Brotherhood of Teamsters. Local 807 (New York, N.Y.) ."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lccorpname
+		"Irish Republican Army."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lccorpname
+		"Veterans of the Abraham Lincoln Brigade."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lccorpname
+		"Sinn Fein."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lccorpname
+		"International Brotherhood of Teamsters."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lccorpname
+		"Irish Northern Aid Committee."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lccorpname
+		"Republican Sinn Fe\u0301in."@en .
+	<http://chrpr.com/data/aia_009.rdf> dce:type
+		"collection"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Political campaigns."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Anti-communist movements -- United States."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Human rights."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Irish Americans -- New York (State) -- New York -- Political activities."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Hunger strikes -- Northern Ireland."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Human rights activists."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Trials (Political crimes and offenses) -- United States."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcsh
+		"Political campaigns -- New York (State) -- New York."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Human rights activists."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Hunger strikes"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"New York"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"New York."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Political activities."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Political campaigns"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Political campaigns."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Anti-communist movements"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Irish Americans"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Human rights."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"New York (State)"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Northern Ireland."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"Trials (Political crimes and offenses)"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:fast
+		"United States."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:arrange
+		""" 
+Series I. Personal, 1964-2001
+ Series II. Organizations and Memberships, 1925-2000
+ Series III. Pamphlets and Publications, 1937-2003
+ Series IV. Oversize Materials: Publications and Fliers, 1963-1995
+ Series V. Photographs, 1982-1998
+ Series VI. Ephemera, 1970-2000
+"""@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:related
+		""" Related Materials include: 
+Sean Prendiville Collection AIA 006
+ Frank Durkan Papers AIA 008
+ Jane Conlon Muller Oral History Collection AIA 012
+ Brian McGinn Papers AIA 015\n Cormac O'Malley Papers AIA 019
+ Irish Republicanism Collection AIA 022
+ Sean Cronin Papers TAM 460
+ Printed Ephemera Collection of Organizational Files PE 036
+ """@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcpers
+		"Cox, Thomas J., 1906-"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcpers
+		"McAliskey, Bernadette Devlin, 1947-"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcpers
+		"O'Dwyer, Paul, 1907-"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:lcpers
+		"Clinton, Bill, 1946-"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Pamphlets."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Fliers (printed matter)"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Clippings (information artifacts)."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"T-shirts."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Buttons (information artifacts)."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Newsletters."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Black-and-white photographs."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Color photographs."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:langnote
+		""@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:langnote
+		"Majority of materials are in English; some in Spanish, French"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:localpers
+		"Durkan, Frank, 1930-2006"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:findingaid
+		"http://dlib.nyu.edu/findingaids/html/tamwag/aia_009"@en .
+	<http://chrpr.com/data/aia_009.rdf> dce:description
+		" 11.0 linear feet (17 boxes)"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:aat
+		"Correspondence."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:perscreator
+		"Harrison, George, 1915-2004."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:sepmaterial
+		" Six boxes of books were removed from the manuscript collection to be cataloged as part of the Tamiment Library book collection."@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:bioghist
+		" Historical/Biographical Note George Harrison (1915-2004) was a socialist and revolutionary Irish republican who spent his life supporting the causes of oppressed peoples around the globe. George Harrison was born in Shammer, Kilkelly, County Mayo, Ireland on May 2, 1915. As a youth he served with the East Mayo Brigade of the Irish Republican Army during the Irish Civil War. He immigrated to the United States in 1938 and served in the Pacific as an infantryman with the U.S. Army during the Second World War. In 1948, Harrison began working as an armored car guard with Brinks, Incorporated. He was suspended in 1981 because of criminal charges brought against him by the U.S. government. On June 23, 1981 George Harrison was arrested by the Federal Bureau of Investigation (FBI) for violations of U.S. Federal firearms laws. Charged with running guns to the Provisional Irish Republican Army, he and four others were tried in a high profile case argued in the Eastern District of New York Federal Court ( U.S. vs. Harrison, Falvey, Mullen, Gormley and Flannery). Harrison was defended by Frank Durkan, a fellow Mayoman and nephew of Paul O\u2019Dwyer. He acknowledged that he had shipped guns to Republicans in Ireland but argued that America\u2019s Central Intelligence Agency (CIA) was complicit in the act. Harrison was acquitted in 1982, He was subsequently reinstated by Brinks, with back pay, in compliance with the order of a Federal Labor Arbitrator (see folder Local 807 IBT vs. Brinks). He retired in the mid-1980s but remained active in political and social causes such opposing racism and apartheid, or aiding Palestinians, Chileans and other victims of poverty and war around the world. Throughout his life, George Harrison was active in many charitable endeavors, including providing funds to help build a new parish church in his native townland in County Mayo during the 1950s. He supported Irish-American organizations that advocated the union of Northern Ireland with the Republic of Ireland, and came to the aid of Irish Republican prisoners held in the United States, Ireland or Great Britain. Politically, Harrison supported socialist causes but was also active in the American presidential campaigns of Jesse Jackson and Bill Clinton, and the New York City mayoral campaign of David Dinkins. George Harrison died at home in Park Slope, Brooklyn on October 6"@en .
+	<http://chrpr.com/data/aia_009.rdf> arch:scope
+		" This collection includes materials from many organizations in which Harrison was active during the period 1970-1995, especially the Irish American Defense Fund, the Irish Republican Socialist Committee of North America, the National Graves Association, and Republican Sinn Fein. It also reflects his interests in liberation movements in South Africa, Cuba, Latin America, Palestine and the Philippines, particularly through a collection of political buttons. In addition to a small amount of personal correspondence and other material, Harrison\u2019s papers document his 1981-1982 defense against charges of gunrunning to the Provisional Irish Republican Army tried in the Eastern District of New York Federal Court ( U.S. vs. Harrison, Falvey, Mullen, Gormley and Flannery). The collection is arranged into five series.  Series I. Personalcontains personal and family history, speeches made by Harrison, a July 1983 application for a pistol permit and papers relating to Harrison\u2019s defense against charges of gunrunning in U.S. vs. Harrison, Falvey, Mullen, Gormley and Flannerymake up the series. Correspondence from friends and co-workers at Brinks can be found in these files, as well as the October 1982 testimony of Bernadette Devlin McAliskey who was a character witness for Harrison at the trial. Harrison was acquitted along with the others November 5, 1982. A book of the trial by Thomas Cox is part of the collection (Box 2, Folder 8). Harrison belonged to a variety of political groups, such as the Hands Off Cuba Coalition, the Committee in Solidarity with Vietnam, Cambodia and Laos, and the National Alliance against Racist and Political Repression. These affiliations and associations comprise Series II, III, and IVvia fliers, correspondence and newsletters and in Series VI. Ephemera. Series III and IV are very closely related; the oversize materials were organized into a separate series to facilitate storage. Harrison\u2019s involvement with Irish and Irish American organizations is well-documented, including a speech he gave at a New York H-Block Armagh Committee rally on December 12, 1982. Materials from the National Graves Association, which worked to provide memorials for Irish Republicans, Republican Sinn Fein (also known as Sinn Fein Poblachtach) include letters from Daithi O\u2019Connell, one of the party\u2019s organizers. Materials relating to the Irish American Defense Fund, which raised money during the 1980s for the legal defense of Irish Republican sympathizers facing criminal trial and deportation proceedings in American courts, complete the Series. These files include minutes, financial statements, fundraising materials, and the group\u2019s newsletter The Nation(additional issues of The Nationcan be found in AIA 004 Publications). Testimonials given to Harrison complete the series. Also of interest is material from the campaigns of Paul O\u2019Dwyer for Mayor of New York City and for City Council President. Photographs of George Harrison\u2019s family and friends are found in Series V. Images of politicians such as President Bill Clinton and Paul O\u2019Dwyer as well as character witnesses at Harrison's trial, notably Bernadette Devlin McAliskey, are found in the series. George Harrison\u2019s button collection with over 200 items acquired during the 1970s-2000s and t-shirts with political slogans along with plaques and other realia complete the collection in Series VI. Topics for buttons and T-shirts include liberation movements in Ireland, El Salvador, Nicaragua, Panama, Peru, Puerto Rico, Namibia, Palestine, Korea, and Cuba; the anti-apartheid movement in South Africa; and anti-war and disarmament causes, with slogans such as \u201cNo U.S. War in the Middle East.\u201d Buttons reflecting Harrison\u2019s support of the labor movement and union strikes, notably that against Eastern Airlines; political campaign buttons such as \u201cNew Yorkers for Jesse Jackson \u201988\u201d and New York City campaigns like \u201cGotta Have Park\u201d complete the button collection.  NOTE: This collection is stored offsite, and advance notice is required for use."@en .

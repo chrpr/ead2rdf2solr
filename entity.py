@@ -6,7 +6,7 @@ from configs import *
 from utils import *
 from types import *
 from rdflib import Graph, URIRef, Namespace, Literal
-from HTTP4Store import HTTP4Store
+from fourstore_operations import FourstoreOperations
 
 #monkey = codecs.open('monkey.txt', 'a', encoding='utf-8')
 
@@ -46,11 +46,12 @@ class Entity(object):
 		- Stretch goal: Writing XML for Primo imput?
 	"""
 
-	def __init__(self, type, text, vocab):
+	def __init__(self, type, text, vocab, store_ops = FourstoreOperations()):
 		"""
 		Generates a candidate entity object from an access point
 		Pre-processes text & checks to see if entity exists
 		"""
+		self.store_ops = store_ops
 		if analyze == True: heads.write(type + "|" + text + "\n")
 		catext = text.split("--")[0]
 
@@ -236,9 +237,14 @@ class Entity(object):
 					top.write(catext + "\n")
 
 	def makeSolr(self):
-		from utils import *
 		"""Sends SOLR Updates based on current schema"""
 		s = sunburnt.SolrInterface('http://localhost:8983/solr')
+		record = self.__solrRecord__()
+
+		s.add(record)
+		s.commit()
+
+	def __solrRecord__(self):
 		record = {}
 		record['id'] = self.metadata['id']
 		record['title_display'] = self.metadata['label']
@@ -281,14 +287,14 @@ class Entity(object):
 		for heading in self.headings:
 			record['headings_display'].append(heading)
 
-		sameArray = sameAsObj('http://chrpr.com/data/' + self.metadata['id'].encode('utf-8') + '.rdf')
+		sameArray = self.store_ops.sameAsObj('http://chrpr.com/data/' + self.metadata['id'].encode('utf-8') + '.rdf')
 		record['dbpedia_display'] = []
 		record['abstract_t'] = []
 
 		for uri in sameArray:
 			#print "  -" + uri.encode('utf-8')
 			record['dbpedia_display'].append(uri)
-			abstracts = dbpField(uri.encode('utf-8'), 'http://dbpedia.org/ontology/abstract')
+			abstracts = self.store_ops.dbpField(uri.encode('utf-8'), 'http://dbpedia.org/ontology/abstract')
 			for abstract in abstracts:
 				#print "      Abstract:" + abstract.encode('utf-8')
 				record['abstract_t'].append(abstract)
@@ -298,9 +304,7 @@ class Entity(object):
 		for k, v in record.items():
 			if len(v) == 0:
 				del record[k]
-
-		s.add(record)
-		s.commit()
+		return record
 
 	def makeGraph(self):
 		"""Generates an internal RDF Graph of the EAD Object"""
@@ -368,9 +372,6 @@ class Entity(object):
 	def fourstore(self):
 		if not hasattr(self, "graph"):
 			self.makeGraph()
-		turtle = self.graph.serialize(format="turtle")
-		store = HTTP4Store('http://localhost:8080')
-		#print turtle
-		r =  store.append_graph("http://chrpr.net/data/entity", turtle, "turtle")
+		self.store_ops.store(self.graph)
 
 

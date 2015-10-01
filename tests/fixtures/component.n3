@@ -1,0 +1,20 @@
+# foo is the identifier provided by the MockEad class in TestComponent
+@prefix dce: <http://purl.org/dc/elements/1.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix arch: <http://chrpr.com/arch/> .
+	<http://chrpr.com/data/foo-ref13.rdf> dce:date
+		"1964-2001"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> dce:identifier
+		"foo-ref13"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> dce:type
+		"series"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> dct:title
+		"Series I. Personal"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> arch:findingaid
+		"foo"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> arch:inCollection
+		"foo"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> arch:hasComponent
+		"foo-ref18"@en .
+	<http://chrpr.com/data/foo-ref13.rdf> arch:hasComponent
+		"foo-ref19"@en .
